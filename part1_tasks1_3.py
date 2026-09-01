@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-# =====================================================================
-# q_learning_level0_standalone.py
-# Single file demo for Task 1 - Basic Q-learning with a visual GridWorld
-# =====================================================================
 
 import csv
 import math
@@ -365,7 +361,7 @@ def run_experiment(level_id: int = 0, algorithm: str = "q_learning"):
         print_summary(log_rows)
 
     # Evaluation Mode
-    print("\n>> Huấn luyện hoàn tất! Bắt đầu Evaluation Mode (Chính sách tối ưu eps = 0.0)...")
+    print("\n>> Training complete! Starting Evaluation Mode (optimal policy, eps = 0.0)...")
     eval_running = running
     while eval_running:
         s = env.reset()
@@ -395,11 +391,8 @@ def run_experiment(level_id: int = 0, algorithm: str = "q_learning"):
 if __name__ == "__main__":
     run_experiment(level_id=3, algorithm="q_learning")
 
-    # Task 2: Q-learning né lửa (Level 1) - Mở để so sánh
     # run_experiment(level_id=1, algorithm="q_learning")
 
-    # Task 3: Bitmask nhiều táo + Key + Chest (Level 2)
     # run_experiment(level_id=2, algorithm="q_learning")
 
-    # Task 3: Mê cung đá + lửa (Level 3)
     # run_experiment(level_id=3, algorithm="q_learning")
