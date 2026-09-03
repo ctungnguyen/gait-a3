@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import csv
+import argparse
 import math
 import os
 import random
@@ -263,7 +264,8 @@ def print_summary(log_rows: list):
     last = log_rows[-100:]
     avg_return = sum(r[1] for r in last) / len(last)
     death_count = sum(1 for r in last if r[4] == 1)
-    print(f">> Last 100 episodes -> Avg Return: {avg_return:.2f} | Deaths: {death_count}/100")
+    print(f">> Last {len(last)} episodes -> Avg Return: {avg_return:.2f} | "
+          f"Deaths: {death_count}/{len(last)}")
 
 
 def train_tabular(level_id: int, algorithm: str, cfg: Optional[dict] = None,
@@ -361,7 +363,13 @@ def render_frame(screen, font, env: GridWorld, level_id: int, algo_name: str,
 
 
 def run_experiment(level_id: int = 0, algorithm: str = "q_learning",
-                   use_intrinsic_reward: Optional[bool] = None):
+                   use_intrinsic_reward: Optional[bool] = None,
+                   show_evaluation: bool = True):
+    if level_id not in MAPS:
+        raise ValueError(f"Unknown level {level_id}; available levels: {sorted(MAPS)}")
+    if algorithm not in ("q_learning", "sarsa"):
+        raise ValueError("algorithm must be 'q_learning' or 'sarsa'")
+    random.seed(CONFIG.get("seed", 42))
     pygame.init()
     layout = MAPS[level_id]
     env = GridWorld(layout)
@@ -442,6 +450,10 @@ def run_experiment(level_id: int = 0, algorithm: str = "q_learning",
         print(f">> Log saved to {path}")
         print_summary(log_rows)
 
+    if not show_evaluation:
+        pygame.quit()
+        return
+
     # Evaluation Mode
     print("\n>> Training complete! Starting Evaluation Mode (optimal policy, eps = 0.0)...")
     eval_running = running
@@ -471,10 +483,22 @@ def run_experiment(level_id: int = 0, algorithm: str = "q_learning",
 
 
 if __name__ == "__main__":
-    run_experiment(level_id=3, algorithm="q_learning")
-
-    # run_experiment(level_id=1, algorithm="q_learning")
-
-    # run_experiment(level_id=2, algorithm="q_learning")
-
-    # run_experiment(level_id=3, algorithm="q_learning")
+    parser = argparse.ArgumentParser(description="Train and visualize a tabular GridWorld agent.")
+    parser.add_argument("--level", type=int, choices=sorted(MAPS), default=3)
+    parser.add_argument("--algorithm", choices=("q_learning", "sarsa"), default="q_learning")
+    parser.add_argument("--episodes", type=int, help="Override the configured training episode count.")
+    parser.add_argument("--intrinsic", action="store_true",
+                        help="Add Level 6 intrinsic reward to learning updates.")
+    parser.add_argument("--no-evaluation", action="store_true",
+                        help="Exit after training instead of opening evaluation mode.")
+    args = parser.parse_args()
+    if args.episodes is not None:
+        if args.episodes < 1:
+            parser.error("--episodes must be at least 1")
+        CONFIG["episodes"] = args.episodes
+    run_experiment(
+        level_id=args.level,
+        algorithm=args.algorithm,
+        use_intrinsic_reward=True if args.intrinsic else None,
+        show_evaluation=not args.no_evaluation,
+    )
