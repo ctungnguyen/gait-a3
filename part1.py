@@ -19,15 +19,19 @@ CONFIG = {
     "epsilonDecayEpisodes": 700,
     "maxStepsPerEpisode": 400,
     "fpsVisual": 25,
-    "fpsFast": 240,
+    "fpsFast": 1000, # fast mode (originally 240)
     "tileSize": 48,
     "seed": 42,
     "intrinsicRewardStrength": 0.1,
-    "useIntrinsicReward": False
+    "useIntrinsicReward": False,
+    "monsterMoveChance": 0.4
+
 }
 
 ACTIONS = [(0, -1), (1, 0), (0, 1), (-1, 0)]
 ALL_ACTIONS = [0, 1, 2, 3]
+MONSTER_LEVELS = {4, 5}
+INTRINSIC_LEVELS = {6}
 
 MAPS = {
     0: [
@@ -70,17 +74,46 @@ MAPS = {
         "        A   ",
         "        A   "
     ],
-    6: [
+    4: [
         "S           ",
-        "   RRR      ",
-        "       R    ",
-        "   A   R  A ",
-        "       R    ",
-        " K     R C  ",
-        "       R    ",
-        "      A     "
+        "            ",
+        "      M     ",
+        "        A   ",
+        "            ",
+        "  M         ",
+        "        A   ",
+        "        A   "
+    ],
+    5: [
+        "S     R     ",
+        "      R   M ",
+        "  K   R     ",
+        "      R   A ",
+        "  M       C ",
+        "      RRRRR ",
+        "        A   ",
+        "   A        "
+    ],
+    6: [
+        "S    R      R    ",
+        "     R      R    ",
+        "     R      R    ",
+        "     RRRRRR R    ",
+        "            R    ",
+        "  RRRRRRRR  R    ",
+        "  R         R    ",
+        "  R   RRRRRRR    ",
+        "  R              ",
+        "  RRRRRRRRRR K   ",
+        "             R   ",
+        "             R  C",
+        "             R   ",
+        "             R  A"
     ]
+    # change this to whatever you prefer
+
 }
+
 
 
 @dataclass
@@ -92,16 +125,18 @@ class StepResult:
 
 
 class GridWorld:
-    def __init__(self, layout: List[str]):
+    def __init__(self, layout: List[str], monster_move_chance: float = 0.4):
         self.layout = layout
         self.w = max(len(row) for row in layout)
         self.h = len(layout)
+        self.monster_move_chance = monster_move_chance
         self.rocks = set()
         self.fires = set()
         self.key_pos: Optional[Tuple[int, int]] = None
         self.chest_pos: Optional[Tuple[int, int]] = None
         self.apples: List[Tuple[int, int]] = []
         self.apple_index: Dict[Tuple[int, int], int] = {}
+        self.monster_starts: List[Tuple[int, int]] = []
         self.start = (0, 0)
 
         for y, row in enumerate(layout):
@@ -116,6 +151,7 @@ class GridWorld:
                 elif ch == "F": self.fires.add(p)
                 elif ch == "K": self.key_pos = p
                 elif ch == "C": self.chest_pos = p
+                elif ch == "M": self.monster_starts.append(p)
         self.reset()
 
     def reset(self) -> Tuple:
@@ -127,6 +163,7 @@ class GridWorld:
         self.apple_mask = 0
         for i in range(len(self.apples)):
             self.apple_mask |= (1 << i)
+        self.monsters: List[Tuple[int, int]] = list(self.monster_starts)
         return self.encode_state()
 
     def encode_state(self) -> Tuple:
@@ -135,7 +172,8 @@ class GridWorld:
             self.agent[1],
             self.apple_mask,
             self.has_key,
-            self.chest_opened
+            self.chest_opened,
+            tuple(self.monsters)
         )
 
     def in_bounds(self, p: Tuple[int, int]) -> bool:
@@ -148,6 +186,26 @@ class GridWorld:
             return p
         return np
 
+    def _move_monsters(self):
+        occupied = set(self.monsters)
+        new_positions = []
+        for m in self.monsters:
+            occupied.discard(m)
+            new_pos = m
+            if random.random() < self.monster_move_chance:
+                candidates = []
+                for a in ALL_ACTIONS:
+                    dx, dy = ACTIONS[a]
+                    cand = (m[0] + dx, m[1] + dy)
+                    if self.in_bounds(cand) and cand not in self.rocks and cand not in occupied:
+                        candidates.append(cand)
+                if candidates:
+                    new_pos = random.choice(candidates)
+            occupied.add(new_pos)
+            new_positions.append(new_pos)
+        self.monsters = new_positions
+
+
     def step(self, action: int) -> StepResult:
         self.step_count += 1
         reward = 0.0
@@ -156,7 +214,7 @@ class GridWorld:
 
         self.agent = self.try_move(self.agent, action)
 
-        if self.agent in self.fires:
+        if self.agent in self.fires or self.agent in self.monsters:
             self.alive = False
             return StepResult(self.encode_state(), 0.0, True, {"event": "death"})
 
@@ -181,6 +239,14 @@ class GridWorld:
         if apples_done and chest_done:
             done = True
             info["event"] = "win"
+            return StepResult(self.encode_state(), reward, done, info)
+
+        if self.monsters:
+            self._move_monsters()
+            if self.agent in self.monsters:
+                self.alive = False
+                return StepResult(self.encode_state(), reward, True, {"event": "death"})
+
 
         return StepResult(self.encode_state(), reward, done, info)
 
@@ -202,6 +268,19 @@ class QTable:
         vals = self.q[s]
         m = max(vals)
         return [a for a, v in enumerate(vals) if math.isclose(v, m, abs_tol=1e-7)]
+
+class VisitCounter:
+    def __init__(self):
+        self.counts: Dict[Tuple, int] = defaultdict(int)
+ 
+    def reset(self):
+        self.counts.clear()
+ 
+    def visit_and_bonus(self, s: Tuple, strength: float) -> float:
+        n_s = self.counts[s]
+        bonus = strength / math.sqrt(n_s + 1)
+        self.counts[s] += 1
+        return bonus
 
 
 class BaseTabularAgent:
@@ -250,9 +329,9 @@ class SARSAAgent(BaseTabularAgent):
         self.qtable.set(s, a, cur_q + self.alpha * (target - cur_q))
 
 
-def save_log(log_rows: list, level_id: int, algorithm: str) -> str:
+def save_log(log_rows: list, level_id: int, algorithm: str, suffix: str="") -> str:
     os.makedirs("logs", exist_ok=True)
-    path = f"logs/level{level_id}_{algorithm}.csv"
+    path = f"logs/level{level_id}_{algorithm}{suffix}.csv"
     with open(path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["episode", "return", "steps", "epsilon", "died"])
@@ -319,7 +398,9 @@ def train_tabular(level_id: int, algorithm: str, cfg: Optional[dict] = None,
 
 
 def render_frame(screen, font, env: GridWorld, level_id: int, algo_name: str,
-                 ep: int, total_ep: int, step: int, eps: float, score: float, is_eval: bool = False):
+                 ep: int, total_ep: int, step: int, eps: float, score: float,
+                 use_intrinsic: bool = False, is_eval: bool = False):
+
     ts = CONFIG["tileSize"]
     screen.fill((28, 30, 38))
 
@@ -345,14 +426,23 @@ def render_frame(screen, font, env: GridWorld, level_id: int, algo_name: str,
             ax, ay = p
             pygame.draw.circle(screen, (250, 204, 21), (ax * ts + ts // 2, ay * ts + ts // 2), ts // 3)
 
+
+    for (mx, my) in env.monsters:
+        cx, cy = mx * ts + ts // 2, my * ts + ts // 2
+        r = ts // 3
+        pygame.draw.polygon(screen, (185, 28, 28),
+                             [(cx, cy - r), (cx + r, cy), (cx, cy + r), (cx - r, cy)])
+ 
     px, py = env.agent
     pygame.draw.rect(screen, (34, 197, 94), (px * ts + 6, py * ts + 6, ts - 12, ts - 12), border_radius=8)
 
+
     status = "EVALUATION (Learned Policy)" if is_eval else f"TRAINING (Ep {ep+1}/{total_ep})"
+    intrinsic_tag = " | Intrinsic: ON" if use_intrinsic else ""
     hud = [
-        f"Lvl: {level_id} | Algo: {algo_name.upper()} | {status}",
+        f"Lvl: {level_id} | Algo: {algo_name.upper()}{intrinsic_tag} | {status}",
         f"Step: {step} | Eps: {eps:.3f} | Return: {score:.1f}",
-        f"Apples: {bin(env.apple_mask).count('1')} | Key: {env.has_key} | Chest: {env.chest_opened}",
+         f"Apples: {bin(env.apple_mask).count('1')} | Key: {env.has_key} | Chest: {env.chest_opened} | Monsters: {len(env.monsters)}",
         "V: Fast Mode | R: Reset Q-table | Esc: Next Mode"
     ]
     for i, line in enumerate(hud):
@@ -362,41 +452,59 @@ def render_frame(screen, font, env: GridWorld, level_id: int, algo_name: str,
     pygame.display.flip()
 
 
-def run_experiment(level_id: int = 0, algorithm: str = "q_learning",
-                   use_intrinsic_reward: Optional[bool] = None,
-                   show_evaluation: bool = True):
+def run_experiment(
+    level_id: int = 0,
+    algorithm: str = "q_learning",
+    use_intrinsic_reward: Optional[bool] = None,
+    show_evaluation: bool = True):
     if level_id not in MAPS:
-        raise ValueError(f"Unknown level {level_id}; available levels: {sorted(MAPS)}")
+        raise ValueError(
+            f"Unknown level {level_id}; available levels: {sorted(MAPS)}"
+        )
+
     if algorithm not in ("q_learning", "sarsa"):
         raise ValueError("algorithm must be 'q_learning' or 'sarsa'")
+
     random.seed(CONFIG.get("seed", 42))
+
+    use_intrinsic = (
+        bool(CONFIG["useIntrinsicReward"])
+        if use_intrinsic_reward is None
+        else use_intrinsic_reward
+    )
+
     pygame.init()
     layout = MAPS[level_id]
-    env = GridWorld(layout)
+    env = GridWorld(layout, monster_move_chance=CONFIG["monsterMoveChance"])
     screen = pygame.display.set_mode((env.w * CONFIG["tileSize"], env.h * CONFIG["tileSize"]))
-    pygame.display.set_caption(f"Task 1-3 Demo - Level {level_id} ({algorithm.upper()})")
+    pygame.display.set_caption(f"Part 1 Demo - Level {level_id} ({algorithm.upper()})")
     clock = pygame.time.Clock()
     font = pygame.font.Font(None, 20)
 
     agent = QLearningAgent(CONFIG) if algorithm == "q_learning" else SARSAAgent(CONFIG)
-    intrinsic = CONFIG["useIntrinsicReward"] if use_intrinsic_reward is None else use_intrinsic_reward
+    visits = VisitCounter()
+    intrinsic_strength = CONFIG["intrinsicRewardStrength"]
     episodes = CONFIG["episodes"]
     max_steps = CONFIG["maxStepsPerEpisode"]
     is_fast = False
     running = True
     log_rows = []
 
-    print(f"\n>> RUNNING: Level {level_id} | Algorithm: {algorithm.upper()}")
+    print(f"\n>> RUNNING: Level {level_id} | Algorithm: {algorithm.upper()} | Intrinsic: {use_intrinsic}")
 
     for ep in range(episodes):
         s = env.reset()
-        agent.start_episode(s)
+        visits.reset()
         eps = agent.get_epsilon(ep)
         ep_score = 0.0
         steps = 0
         res = None
-
+ 
+        if use_intrinsic:
+            visits.visit_and_bonus(s, intrinsic_strength)
+ 
         a = agent.choose_action(s, eps)
+
 
         while running:
             for event in pygame.event.get():
@@ -408,6 +516,7 @@ def run_experiment(level_id: int = 0, algorithm: str = "q_learning",
                     elif event.key == pygame.K_r:
                         agent.qtable = QTable()
                         s = env.reset()
+                        visits.reset()
                         ep_score, steps = 0.0, 0
             if not running: break
 
@@ -420,20 +529,23 @@ def run_experiment(level_id: int = 0, algorithm: str = "q_learning",
             steps += 1
             if steps >= max_steps and not done:
                 done = True
-            learning_reward = r
-            if intrinsic:
-                learning_reward += agent.intrinsic_reward(sp)
+
+            update_r = r
+            if use_intrinsic:
+                update_r = r + visits.visit_and_bonus(sp, intrinsic_strength)
 
             if algorithm == "q_learning":
-                agent.update(s, a, learning_reward, sp, done)
+                agent.update(s, a, update_r, sp, done)
             elif algorithm == "sarsa":
                 ap = agent.choose_action(sp, eps) if not done else 0
-                agent.update(s, a, learning_reward, sp, ap, done)
+                agent.update(s, a, update_r, sp, ap, done)
                 a = ap
 
             s = sp
 
-            render_frame(screen, font, env, level_id, algorithm, ep, episodes, steps, eps, ep_score, is_eval=False)
+            render_frame(screen, font, env, level_id, algorithm, ep, episodes, steps, eps, ep_score,
+                         use_intrinsic=use_intrinsic, is_eval=False)
+
             clock.tick(CONFIG["fpsFast"] if is_fast else CONFIG["fpsVisual"])
 
             if done or steps >= max_steps:
@@ -446,7 +558,10 @@ def run_experiment(level_id: int = 0, algorithm: str = "q_learning",
             print(f"Ep {ep+1:4d}/{episodes} | Return: {ep_score:.1f} | Epsilon: {eps:.3f}")
 
     if log_rows:
-        path = save_log(log_rows, level_id, algorithm)
+        suffix = ""
+        if level_id in INTRINSIC_LEVELS:
+            suffix = "_intrinsic" if use_intrinsic else "_no_intrinsic"
+        path = save_log(log_rows, level_id, algorithm, suffix=suffix)
         print(f">> Log saved to {path}")
         print_summary(log_rows)
 
@@ -472,7 +587,9 @@ def run_experiment(level_id: int = 0, algorithm: str = "q_learning",
             ep_score += res.reward
             steps += 1
 
-            render_frame(screen, font, env, level_id, algorithm, 0, 0, steps, 0.0, ep_score, is_eval=True)
+            render_frame(screen, font, env, level_id, algorithm, 0, 0, steps, 0.0, ep_score,
+                         use_intrinsic=use_intrinsic, is_eval=True)
+
             clock.tick(CONFIG["fpsVisual"])
 
             if res.done or steps >= max_steps:
@@ -502,3 +619,14 @@ if __name__ == "__main__":
         use_intrinsic_reward=True if args.intrinsic else None,
         show_evaluation=not args.no_evaluation,
     )
+    
+    #incase you want to run each lvl seperately for testing
+    # run_experiment(level_id=4, algorithm="q_learning")
+
+    # run_experiment(level_id=1, algorithm="q_learning")
+
+    # run_experiment(level_id=2, algorithm="q_learning")
+
+    # run_experiment(level_id=3, algorithm="q_learning")
+
+    # lvl 4 for cool monsters, lvl 5 for monsters AND obstacles, lvl 6 for intrinsic reward
