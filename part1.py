@@ -620,13 +620,4 @@ if __name__ == "__main__":
         show_evaluation=not args.no_evaluation,
     )
     
-    #incase you want to run each lvl seperately for testing
-    # run_experiment(level_id=4, algorithm="q_learning")
 
-    # run_experiment(level_id=1, algorithm="q_learning")
-
-    # run_experiment(level_id=2, algorithm="q_learning")
-
-    # run_experiment(level_id=3, algorithm="q_learning")
-
-    # lvl 4 for cool monsters, lvl 5 for monsters AND obstacles, lvl 6 for intrinsic reward
