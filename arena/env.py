@@ -15,7 +15,7 @@ from .adapters import (
     neutral_reward,
 )
 from .config import ArenaConfig
-from .controls import ControlStyle, action_count, action_name, decode_action
+from .controls import ControlStyle, action_count, action_name, action_names, decode_action
 from .core import ArenaCore
 from .gym_compat import BaseEnv, GYMNASIUM_AVAILABLE, spaces
 
@@ -48,6 +48,8 @@ class ArenaEnv(BaseEnv):
         self.reward_fn = reward_fn
         self.core = ArenaCore(self.config, seed=seed)
         self.action_space = spaces.Discrete(action_count(self.control_style))
+        if seed is not None:
+            self.action_space.seed(seed)
         self.observation_space = spaces.Box(
             low=-1.0,
             high=1.0,
@@ -55,6 +57,7 @@ class ArenaEnv(BaseEnv):
             dtype=np.float32,
         )
         self._renderer = None
+        self.last_action_index: int | None = None
         self.last_action_name = "NO ACTION YET"
 
     def reset(
@@ -66,16 +69,27 @@ class ArenaEnv(BaseEnv):
         if GYMNASIUM_AVAILABLE:
             super().reset(seed=seed)
         del options
+        if seed is not None:
+            self.action_space.seed(seed)
         self.core.reset(seed=seed)
+        self.last_action_index = None
         self.last_action_name = "NO ACTION YET"
         observation = self.observation_fn(self.core)
-        return observation, self.core.info()
+        info = self.core.info()
+        info.update(
+            {
+                "control_style": self.control_style.value,
+                "action_meanings": self.get_action_meanings(),
+            }
+        )
+        return observation, info
 
     def step(self, action: int) -> tuple[np.ndarray, float, bool, bool, dict]:
         if not self.action_space.contains(action):
             raise ValueError(f"Invalid action {action} for {self.control_style.value}")
-        command = decode_action(self.control_style, int(action))
-        self.last_action_name = action_name(self.control_style, int(action))
+        self.last_action_index = int(action)
+        command = decode_action(self.control_style, self.last_action_index)
+        self.last_action_name = action_name(self.control_style, self.last_action_index)
         outcome = self.core.step(command, self.control_style)
         observation = self.observation_fn(self.core)
         reward = float(self.reward_fn(self.core, outcome))
@@ -83,12 +97,18 @@ class ArenaEnv(BaseEnv):
         info.update(
             {
                 "control_style": self.control_style.value,
+                "action_index": self.last_action_index,
                 "action_name": self.last_action_name,
                 "terminated": outcome.terminated,
                 "truncated": outcome.truncated,
             }
         )
         return observation, reward, outcome.terminated, outcome.truncated, info
+
+    def get_action_meanings(self) -> tuple[str, ...]:
+        """Expose the exact action order used to train or evaluate a model."""
+
+        return action_names(self.control_style)
 
     def render(self, status: str | None = None, debug: bool = False):
         if self.render_mode is None:

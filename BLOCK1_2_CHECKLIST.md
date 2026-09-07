@@ -43,12 +43,12 @@
 
 ## Scope boundary
 
-- The two manual `--style` options are the Block 4-compatible action adapters,
-  not two versions of Blocks 1 and 2.
-- Both mappings are present so one Arena can be tested and later shared fairly
-  by both agents.
-- Separate trained models and trained-agent evaluation scripts are **not**
-  complete in this package and must not be claimed yet.
+- The two manual `--style` options select the now-final Block 4 action
+  contracts; they are not two versions of Blocks 1 and 2.
+- Both mappings and style-locked factories share exactly one Arena so the two
+  agents can be compared fairly.
+- Separate trained-agent evaluation scripts are included. The actual trained
+  model files remain Block 6 outputs and must not be claimed until generated.
 - `run_api_demo.py` uses random actions only to smoke-test the API. It is not a
   learned agent and is not assessment evidence of learned behaviour.
 
@@ -71,6 +71,5 @@ replace the required trained-agent clips, TensorBoard results, or report.
 ## Intentionally left to other owners
 
 - Final Block 3 observation explanation, optional refinement, and ablation
-- Final Block 4 action tuning
 - Block 5 reward weights and justification
 - Block 6 PPO/DQN training, TensorBoard logs, and final models

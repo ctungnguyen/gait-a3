@@ -6,12 +6,23 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from arena import ArenaConfig, ArenaEnv, ControlStyle
+from arena import (
+    ArenaConfig,
+    ArenaEnv,
+    ControlStyle,
+    DirectAction,
+    RotationAction,
+)
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Play the GAIT Neon Pursuit Arena")
-    parser.add_argument("--style", choices=("rotation", "direct"), default="direct")
+    parser.add_argument(
+        "--style",
+        choices=("rotation", "direct"),
+        default="direct",
+        help="Block 4 control scheme to verify (default: direct)",
+    )
     parser.add_argument("--seed", type=int, default=42)
     default_config = Path(__file__).resolve().parent / "config" / "arena.json"
     parser.add_argument("--config", type=Path, default=default_config)
@@ -20,28 +31,32 @@ def parse_args() -> argparse.Namespace:
 
 def selected_action(keys, style, pygame, shoot_ready: bool = True) -> int:
     shoot_held = bool(keys[pygame.K_SPACE])
-    shoot_action = 4 if style is ControlStyle.ROTATION else 5
+    shoot_action = (
+        RotationAction.SHOOT.value
+        if style is ControlStyle.ROTATION
+        else DirectAction.SHOOT.value
+    )
     if shoot_held and shoot_ready:
         return shoot_action
 
     if style is ControlStyle.ROTATION:
         if keys[pygame.K_w] or keys[pygame.K_UP]:
-            return 1
+            return RotationAction.THRUST_FORWARD.value
         if keys[pygame.K_a] or keys[pygame.K_LEFT]:
-            return 2
+            return RotationAction.ROTATE_LEFT.value
         if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
-            return 3
-        return shoot_action if shoot_held else 0
+            return RotationAction.ROTATE_RIGHT.value
+        return shoot_action if shoot_held else RotationAction.NOOP.value
 
     if keys[pygame.K_w] or keys[pygame.K_UP]:
-        return 1
+        return DirectAction.MOVE_UP.value
     if keys[pygame.K_s] or keys[pygame.K_DOWN]:
-        return 2
+        return DirectAction.MOVE_DOWN.value
     if keys[pygame.K_a] or keys[pygame.K_LEFT]:
-        return 3
+        return DirectAction.MOVE_LEFT.value
     if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
-        return 4
-    return shoot_action if shoot_held else 0
+        return DirectAction.MOVE_RIGHT.value
+    return shoot_action if shoot_held else DirectAction.NOOP.value
 
 
 def main() -> None:

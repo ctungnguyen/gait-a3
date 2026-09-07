@@ -146,6 +146,10 @@ class ArenaCore:
             pass
         elif style is ControlStyle.ROTATION:
             player.angle += float(command.turn) * cfg.player_rotation_speed * dt
+            # Long training runs may contain millions of turns. Keeping the
+            # heading bounded avoids needless floating-point growth while
+            # preserving exactly the same direction.
+            player.angle = (player.angle + math.pi) % math.tau - math.pi
             if command.thrust > 0.0:
                 player.vel += (
                     forward(player.angle)

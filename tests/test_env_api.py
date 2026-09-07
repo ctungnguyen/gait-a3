@@ -18,6 +18,11 @@ class ArenaEnvironmentApiTests(unittest.TestCase):
         self.assertTrue(env.observation_space.contains(observation))
         self.assertEqual(env.action_space.n, 6)
         self.assertEqual(info["phase"], 1)
+        self.assertEqual(info["control_style"], "direct")
+        self.assertEqual(
+            info["action_meanings"],
+            ("NOOP", "MOVE_UP", "MOVE_DOWN", "MOVE_LEFT", "MOVE_RIGHT", "SHOOT"),
+        )
 
         result = env.step(0)
         self.assertEqual(len(result), 5)
@@ -27,6 +32,7 @@ class ArenaEnvironmentApiTests(unittest.TestCase):
         self.assertIsInstance(terminated, bool)
         self.assertIsInstance(truncated, bool)
         self.assertEqual(step_info["action_name"], "NOOP")
+        self.assertEqual(step_info["action_index"], 0)
         env.close()
 
     def test_rotation_action_space_has_five_actions(self):

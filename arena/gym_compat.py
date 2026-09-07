@@ -25,11 +25,19 @@ except ImportError:  # pragma: no cover - the fallback itself is tested
             self.n = int(n)
             self._rng = np.random.default_rng()
 
+        def seed(self, seed=None):
+            self._rng = np.random.default_rng(seed)
+            return [seed]
+
         def sample(self) -> int:
             return int(self._rng.integers(self.n))
 
         def contains(self, value) -> bool:
-            return isinstance(value, (int, np.integer)) and 0 <= int(value) < self.n
+            return (
+                not isinstance(value, bool)
+                and isinstance(value, (int, np.integer))
+                and 0 <= int(value) < self.n
+            )
 
     class Box:
         def __init__(self, low, high, shape, dtype=np.float32):

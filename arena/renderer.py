@@ -8,7 +8,7 @@ import random
 import numpy as np
 
 from .config import ArenaConfig
-from .controls import ControlStyle
+from .controls import ControlStyle, action_names
 from .core import ArenaCore
 from .math2d import EPSILON, length
 
@@ -86,7 +86,7 @@ class ArenaRenderer:
         self._draw_player(core)
         if debug:
             self._draw_debug_overlays(core)
-        self._draw_hud(core, control_style)
+        self._draw_hud(core, control_style, action_label)
         if debug:
             self._draw_debug_panel(core, action_label)
 
@@ -191,7 +191,7 @@ class ArenaRenderer:
         ratio = max(0.0, min(1.0, value / max(maximum, 1e-6)))
         pg.draw.rect(self.surface, color, (x, y, round(width * ratio), height), border_radius=2)
 
-    def _draw_hud(self, core: ArenaCore, style: ControlStyle) -> None:
+    def _draw_hud(self, core: ArenaCore, style: ControlStyle, action_label: str) -> None:
         pg = self.pg
         panel = pg.Surface((286, 166), pg.SRCALPHA)
         pg.draw.rect(panel, (9, 15, 26, 222), panel.get_rect(), border_radius=12)
@@ -209,11 +209,25 @@ class ArenaRenderer:
             latest = core.last_events[-1].name.replace("_", " ").upper()
             self._text(latest, self.config.width - 20, 24, self.GOLD, self.small_font, align="right")
 
+        self._text(
+            f"ACTION: {action_label}",
+            self.config.width - 20,
+            46,
+            self.CYAN,
+            self.small_font,
+            align="right",
+        )
+
         controls = (
             "W/UP thrust | A/D turn | SPACE shoot"
             if style is ControlStyle.ROTATION
             else "WASD/arrows move | SPACE shoot"
         )
+        action_map = " | ".join(
+            f"{index}:{name.replace('_', ' ')}"
+            for index, name in enumerate(action_names(style))
+        )
+        self._text(action_map, 18, self.config.height - 62, self.CYAN, self.small_font)
         self._text(controls, 18, self.config.height - 42, self.TEXT, self.small_font)
         self._text(
             "P pause | F3 debug | R reset | ESC exit",
