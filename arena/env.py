@@ -12,7 +12,7 @@ from .adapters import (
     ObservationFunction,
     RewardFunction,
     build_baseline_observation,
-    neutral_reward,
+    progression_reward,
 )
 from .config import ArenaConfig
 from .controls import ControlStyle, action_count, action_name, action_names, decode_action
@@ -36,7 +36,7 @@ class ArenaEnv(BaseEnv):
         control_style: ControlStyle | str = ControlStyle.DIRECT,
         render_mode: str | None = None,
         observation_fn: ObservationFunction = build_baseline_observation,
-        reward_fn: RewardFunction = neutral_reward,
+        reward_fn: RewardFunction = progression_reward,
         seed: int | None = None,
     ):
         if render_mode not in (None, "human", "rgb_array"):

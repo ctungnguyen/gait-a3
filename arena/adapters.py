@@ -143,6 +143,27 @@ def build_baseline_observation(core: ArenaCore) -> np.ndarray:
     return obs
 
 
+REWARD_WEIGHTS = {
+    "enemy_destroyed": 10.0,
+    "spawner_destroyed": 50.0,
+    "phase_advanced": 100.0,
+    "player_damaged": -5.0,
+    "player_died": -100.0,
+}
+
+
+def progression_reward(_core: ArenaCore, outcome: StepOutcome) -> float:
+    """Reward deliberate combat progress and make survivability matter.
+
+    Rewards are emitted only for gameplay events.  This avoids distance-based
+    shaping that could teach the agent to orbit or chase without attacking.
+    Damage events are penalized per contact, while the death event supplies a
+    separate terminal penalty.
+    """
+
+    return float(sum(REWARD_WEIGHTS.get(event.name, 0.0) for event in outcome.events))
+
+
 def neutral_reward(_core: ArenaCore, _outcome: StepOutcome) -> float:
-    """Block 5 hook: valid API value without silently choosing reward weights."""
+    """Compatibility hook for API tests and experiments that need zero reward."""
     return 0.0
