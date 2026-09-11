@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from types import SimpleNamespace
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from arena import ControlStyle
 import evaluate_agent
@@ -20,20 +20,10 @@ class SeparateEvaluationEntrypointTests(unittest.TestCase):
     def test_rotation_evaluator_rejects_direct_action_space_model(self):
         fake_model = SimpleNamespace(action_space=SimpleNamespace(n=6))
 
-        class FakeEnv:
-            action_space = SimpleNamespace(n=5)
-
-            def __init__(self):
-                self.closed = False
-
-            def close(self):
-                self.closed = True
-
-        fake_env = FakeEnv()
+        factory = Mock()
         with (
             patch.object(evaluate_agent, "_load_model", return_value=fake_model),
-            patch.object(evaluate_agent.ArenaConfig, "from_json", return_value=object()),
-            patch.object(evaluate_agent, "make_rotation_env", return_value=fake_env),
+            patch.object(evaluate_agent, "make_rotation_env", factory),
         ):
             with self.assertRaisesRegex(SystemExit, "Wrong model for rotation"):
                 evaluate_agent.evaluate_style(
@@ -42,7 +32,7 @@ class SeparateEvaluationEntrypointTests(unittest.TestCase):
                     argv=["--episodes", "1"],
                 )
 
-        self.assertTrue(fake_env.closed)
+        factory.assert_not_called()
 
 
 if __name__ == "__main__":

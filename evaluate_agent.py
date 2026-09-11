@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Shared visual evaluator used by the two Block 4 entry-point scripts."""
+"""Shared visual PPO evaluator used by the two style-locked entry points."""
 
 from __future__ import annotations
 
@@ -9,10 +9,16 @@ from typing import Sequence
 
 import numpy as np
 
-from arena import ArenaConfig, ControlStyle, make_direct_env, make_rotation_env
-
-
-PROJECT_ROOT = Path(__file__).resolve().parent
+from arena import (
+    ArenaConfig,
+    ControlStyle,
+    ProgressionReward,
+    make_direct_env,
+    make_rotation_env,
+)
+from training.artifacts import PROJECT_ROOT
+from training.config import load_training_settings
+from training.evaluation import load_ppo_model, validate_model_contract
 
 
 def _model_path(value: str | Path) -> Path:
@@ -21,38 +27,38 @@ def _model_path(value: str | Path) -> Path:
 
 
 def _load_model(algorithm: str, path: Path, device: str):
-    try:
-        from stable_baselines3 import DQN, PPO
-    except ImportError as exc:
-        raise SystemExit(
-            "Stable Baselines3 is required for model evaluation. Install it with "
-            "'python -m pip install -r requirements-rl.txt'."
-        ) from exc
-
-    algorithm_class = {"dqn": DQN, "ppo": PPO}[algorithm]
-    try:
-        return algorithm_class.load(str(path), device=device)
-    except FileNotFoundError as exc:
+    if algorithm.lower() != "ppo":
+        raise SystemExit("This project trains both control styles with PPO for a fair comparison.")
+    if not path.exists():
         raise SystemExit(
             f"Model not found: {path}\n"
-            "Train and save the matching style model before evaluation."
-        ) from exc
+            "Run train_rotation.py or train_direct.py before evaluation."
+        )
+    try:
+        return load_ppo_model(path, device=device)
+    except RuntimeError as exc:
+        raise SystemExit(str(exc)) from exc
 
 
 def _build_parser(style: ControlStyle, default_model: Path) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=f"Visually evaluate the trained {style.value} control agent"
+        description=f"Visually evaluate the trained {style.value} PPO agent"
     )
     parser.add_argument("--model", type=_model_path, default=default_model)
-    parser.add_argument("--algorithm", choices=("ppo", "dqn"), default="ppo")
+    parser.add_argument("--algorithm", choices=("ppo",), default="ppo")
     parser.add_argument("--episodes", type=int, default=3)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--fps", type=int, default=30)
     parser.add_argument("--device", default="auto")
     parser.add_argument("--stochastic", action="store_true")
     parser.add_argument("--debug", action="store_true")
-    default_config = PROJECT_ROOT / "config" / "arena.json"
-    parser.add_argument("--config", type=Path, default=default_config)
+    parser.add_argument("--config", type=Path, default=PROJECT_ROOT / "config" / "arena.json")
+    parser.add_argument(
+        "--training-config",
+        type=Path,
+        default=PROJECT_ROOT / "config" / "training.json",
+        help="Supplies the same reward weights used during training",
+    )
     return parser
 
 
@@ -71,17 +77,20 @@ def evaluate_style(
         parser.error("--fps must be positive")
 
     model = _load_model(args.algorithm, args.model, args.device)
-    config = ArenaConfig.from_json(args.config)
-    factory = make_rotation_env if style is ControlStyle.ROTATION else make_direct_env
-    env = factory(config=config, render_mode="human", seed=args.seed)
+    try:
+        validate_model_contract(model, style, args.model)
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
 
-    trained_action_count = getattr(model.action_space, "n", None)
-    if trained_action_count != env.action_space.n:
-        env.close()
-        raise SystemExit(
-            f"Wrong model for {style.value}: model uses Discrete({trained_action_count}), "
-            f"but this style requires Discrete({env.action_space.n})."
-        )
+    config = ArenaConfig.from_json(args.config)
+    settings = load_training_settings(args.training_config)
+    factory = make_rotation_env if style is ControlStyle.ROTATION else make_direct_env
+    env = factory(
+        config=config,
+        reward_fn=ProgressionReward(settings.reward),
+        render_mode="human",
+        seed=args.seed,
+    )
 
     try:
         import pygame
@@ -141,7 +150,9 @@ def evaluate_style(
                     reason = "player died" if terminated else "time limit"
                     print(
                         f"{style.value} episode {episode_index + 1}: {reason}, "
-                        f"phase={info['phase']}, steps={info['step']}, "
+                        f"phase={info['episode_max_phase']}, steps={info['step']}, "
+                        f"spawners={info['episode_spawners_destroyed']}, "
+                        f"enemies={info['episode_enemies_destroyed']}, "
                         f"reward={total_reward:.2f}"
                     )
                     break

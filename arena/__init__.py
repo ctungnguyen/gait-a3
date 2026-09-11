@@ -11,8 +11,9 @@ from .controls import (
 from .core import ArenaCore
 from .env import ArenaEnv, LegacyArenaAdapter
 from .factories import make_direct_env, make_rotation_env
+from .rewards import ProgressionReward, RewardConfig, make_progression_reward
 
-__version__ = "1.3.0"
+__version__ = "2.0.0"
 
 __all__ = [
     "ArenaConfig",
@@ -21,10 +22,13 @@ __all__ = [
     "ControlStyle",
     "DirectAction",
     "LegacyArenaAdapter",
+    "ProgressionReward",
+    "RewardConfig",
     "RotationAction",
     "__version__",
     "action_names",
     "control_scheme",
     "make_direct_env",
+    "make_progression_reward",
     "make_rotation_env",
 ]

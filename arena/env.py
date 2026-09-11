@@ -59,6 +59,8 @@ class ArenaEnv(BaseEnv):
         self._renderer = None
         self.last_action_index: int | None = None
         self.last_action_name = "NO ACTION YET"
+        self.episode_metrics: dict[str, float | int] = {}
+        self._reset_episode_metrics()
 
     def reset(
         self,
@@ -72,6 +74,10 @@ class ArenaEnv(BaseEnv):
         if seed is not None:
             self.action_space.seed(seed)
         self.core.reset(seed=seed)
+        reset_reward = getattr(self.reward_fn, "reset", None)
+        if callable(reset_reward):
+            reset_reward(self.core)
+        self._reset_episode_metrics()
         self.last_action_index = None
         self.last_action_name = "NO ACTION YET"
         observation = self.observation_fn(self.core)
@@ -80,6 +86,7 @@ class ArenaEnv(BaseEnv):
             {
                 "control_style": self.control_style.value,
                 "action_meanings": self.get_action_meanings(),
+                **self.episode_metrics,
             }
         )
         return observation, info
@@ -93,6 +100,7 @@ class ArenaEnv(BaseEnv):
         outcome = self.core.step(command, self.control_style)
         observation = self.observation_fn(self.core)
         reward = float(self.reward_fn(self.core, outcome))
+        self._update_episode_metrics(outcome)
         info = self.core.info(outcome)
         info.update(
             {
@@ -101,9 +109,48 @@ class ArenaEnv(BaseEnv):
                 "action_name": self.last_action_name,
                 "terminated": outcome.terminated,
                 "truncated": outcome.truncated,
+                **self.episode_metrics,
             }
         )
+        reward_components = getattr(self.reward_fn, "last_components", None)
+        if isinstance(reward_components, dict):
+            info["reward_components"] = dict(reward_components)
         return observation, reward, outcome.terminated, outcome.truncated, info
+
+    def _reset_episode_metrics(self) -> None:
+        self.episode_metrics = {
+            "episode_max_phase": int(self.core.phase),
+            "episode_phases_advanced": 0,
+            "episode_enemies_destroyed": 0,
+            "episode_spawners_destroyed": 0,
+            "episode_shots_fired": 0,
+            "episode_damage_dealt": 0.0,
+            "episode_damage_taken": 0.0,
+            "is_success": False,
+        }
+
+    def _update_episode_metrics(self, outcome) -> None:
+        for event in outcome.events:
+            if event.name == "phase_advanced":
+                self.episode_metrics["episode_phases_advanced"] += 1
+            elif event.name == "enemy_destroyed":
+                self.episode_metrics["episode_enemies_destroyed"] += 1
+            elif event.name == "spawner_destroyed":
+                self.episode_metrics["episode_spawners_destroyed"] += 1
+            elif event.name == "projectile_fired":
+                self.episode_metrics["episode_shots_fired"] += 1
+            elif event.name in ("enemy_damaged", "spawner_damaged"):
+                self.episode_metrics["episode_damage_dealt"] += float(event.amount)
+            elif event.name == "player_damaged":
+                self.episode_metrics["episode_damage_taken"] += float(event.amount)
+
+        self.episode_metrics["episode_max_phase"] = max(
+            int(self.episode_metrics["episode_max_phase"]),
+            int(self.core.phase),
+        )
+        self.episode_metrics["is_success"] = bool(
+            self.episode_metrics["episode_phases_advanced"] > 0
+        )
 
     def get_action_meanings(self) -> tuple[str, ...]:
         """Expose the exact action order used to train or evaluate a model."""
