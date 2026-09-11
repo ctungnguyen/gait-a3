@@ -28,6 +28,13 @@ CONFIG = {
 
 }
 
+LEVEL_OVERRIDES = {
+    4: {"alpha": 0.3, "epsilonDecayEpisodes": 600},
+    5: {"alpha": 0.3, "epsilonDecayEpisodes": 600},
+    6: {"alpha": 0.3, "epsilonDecayEpisodes": 500},
+}
+
+
 ACTIONS = [(0, -1), (1, 0), (0, 1), (-1, 0)]
 ALL_ACTIONS = [0, 1, 2, 3]
 MONSTER_LEVELS = {4, 5}
@@ -95,22 +102,17 @@ MAPS = {
         "   A        "
     ],
     6: [
-        "S    R      R    ",
-        "     R      R    ",
-        "     R      R    ",
-        "     RRRRRR R    ",
-        "            R    ",
-        "  RRRRRRRR  R    ",
-        "  R         R    ",
-        "  R   RRRRRRR    ",
-        "  R              ",
-        "  RRRRRRRRRR K   ",
-        "             R   ",
-        "             R  C",
-        "             R   ",
-        "             R  A"
+        "S      R     ",
+        "       R     ",
+        "  RRRRRR     ",
+        "  R          ",
+        "  R  RRRRR   ",
+        "  R  R    R  ",
+        "  R  R RRRR  ",
+        "  R  R     K ",
+        "     R   C A "
     ]
-    # change this to whatever you prefer
+
 
 }
 
@@ -166,14 +168,22 @@ class GridWorld:
         self.monsters: List[Tuple[int, int]] = list(self.monster_starts)
         return self.encode_state()
 
+    def danger_signal(self) -> Tuple[int, int, int, int]:
+        ax, ay = self.agent
+        monster_set = set(self.monsters)
+        return tuple(
+            1 if (ax + dx, ay + dy) in monster_set else 0
+            for dx, dy in ACTIONS
+        )
+
     def encode_state(self) -> Tuple:
         return (
             self.agent[0],
             self.agent[1],
             self.apple_mask,
+            self.danger_signal(),
             self.has_key,
-            self.chest_opened,
-            tuple(self.monsters)
+            self.chest_opened
         )
 
     def in_bounds(self, p: Tuple[int, int]) -> bool:
