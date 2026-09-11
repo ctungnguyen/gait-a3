@@ -1,0 +1,12 @@
+#!/usr/bin/env python3
+"""Visual evaluation entry point for the direct-direction agent only."""
+
+from arena import ControlStyle
+from evaluate_agent import default_model_path, evaluate_style
+
+
+if __name__ == "__main__":
+    evaluate_style(
+        ControlStyle.DIRECT,
+        default_model=default_model_path(ControlStyle.DIRECT),
+    )
