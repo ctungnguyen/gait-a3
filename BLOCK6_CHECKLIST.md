@@ -49,7 +49,7 @@ expected Block 6 artifacts are present and match their control contracts.
 ## Report evidence to extract
 
 - PPO choice and why the same algorithm was used for a fair comparison
-- Fixed 21-value observation vector
+- Fixed 25-value observation vector
 - Exact `Discrete(5)` versus `Discrete(6)` mappings
 - Two-hidden-layer MLP architecture
 - Final reward table and justification

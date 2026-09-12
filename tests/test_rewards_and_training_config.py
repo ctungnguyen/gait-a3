@@ -10,6 +10,7 @@ import unittest
 import numpy as np
 
 from arena import ControlStyle, make_direct_env
+from arena.adapters import OBSERVATION_SIZE
 from arena.core import ArenaCore
 from arena.entities import ArenaEvent, Projectile, StepOutcome
 from arena.math2d import normalized, vec
@@ -191,7 +192,7 @@ class TrainingConfigurationTests(unittest.TestCase):
                             "ROTATE_RIGHT",
                             "SHOOT",
                         ],
-                        "observation_size": 21,
+                        "observation_size": OBSERVATION_SIZE,
                         "model_sha256": sha256_file(model_path),
                     }
                 ),

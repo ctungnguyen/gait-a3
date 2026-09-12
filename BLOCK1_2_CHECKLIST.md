@@ -31,7 +31,7 @@
 
 ## Observation coverage required alongside the API by rubric H2
 
-- [x] Fixed-size numeric feature vector (`float32`, shape `(21,)`)
+- [x] Fixed-size numeric feature vector (`float32`, shape `(25,)`)
 - [x] Player position
 - [x] Player velocity
 - [x] Player orientation represented by sine and cosine

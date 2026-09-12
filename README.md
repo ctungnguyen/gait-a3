@@ -56,7 +56,7 @@ phase progression rather than a tile map.
 - Pygame human and RGB-array rendering
 - Headless deterministic simulation for fast training
 - Modern Gymnasium API and the assignment's legacy four-value API
-- A normalized, fixed-size 21-value numeric observation covering every minimum
+- A normalized, fixed-size 25-value numeric observation covering every minimum
   feature named in the assessment
 - Final, style-locked Block 4 action contracts for rotation/thrust
   (`Discrete(5)`) and direct movement (`Discrete(6)`)
@@ -364,7 +364,7 @@ the actual Arena is rendered by `render()` and `run_manual.py`.
 
 `arena/adapters.py` is the integration point:
 
-- `build_baseline_observation(core)` currently returns a normalized 21-value
+- `build_baseline_observation(core)` currently returns a normalized 25-value
   vector covering player position/velocity/orientation, nearest enemy and
   spawner relative information, health, cooldown, counts, and phase. This
   already meets the minimum observation fields in the rubric; the Block 3
@@ -398,6 +398,19 @@ reports/training_curves_final.png
 `part1.py` contains the visual Gridworld, Q-learning, SARSA, Levels 0–6, and
 intrinsic-reward support. Part I and its existing logs were preserved while
 Block 6 was added.
+
+Part I training settings are stored in `config/part1.json`. To generate the
+required monster-level, intrinsic-reward, and Q-learning/SARSA comparison
+evidence, run:
+
+```powershell
+python part1_evidence.py --episodes 1000
+```
+
+This writes CSV curves, a JSON rollout summary, and
+`reports/part1/part1_learning_curves.png`. The summary contains deterministic
+greedy rollouts for Levels 1, 4, 5, and 6; environment returns exclude
+intrinsic bonuses while the bonuses are used only in the learning updates.
 
 See `BLOCK4_CHECKLIST.md`, `BLOCK6_CHECKLIST.md`, and `SOURCES_AND_REUSE.md` for
 the exact assessment mapping and remaining evidence checklist.

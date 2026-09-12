@@ -2,31 +2,43 @@
 
 import csv
 import argparse
+import json
 import math
 import os
 import random
 from collections import defaultdict
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 import pygame
 
-CONFIG = {
-    "episodes": 1000,
-    "alpha": 0.2,
-    "gamma": 0.95,
-    "epsilonStart": 1.0,
-    "epsilonEnd": 0.05,
-    "epsilonDecayEpisodes": 700,
-    "maxStepsPerEpisode": 400,
-    "fpsVisual": 25,
-    "fpsFast": 1000, # fast mode (originally 240)
-    "tileSize": 48,
-    "seed": 42,
-    "intrinsicRewardStrength": 0.1,
-    "useIntrinsicReward": False,
-    "monsterMoveChance": 0.4
+DEFAULT_CONFIG_PATH = Path(__file__).resolve().parent / "config" / "part1.json"
 
-}
+
+def load_config(path: str | Path = DEFAULT_CONFIG_PATH) -> dict:
+    """Load validated Part I training and rendering settings from JSON."""
+    config_path = Path(path)
+    with config_path.open(encoding="utf-8") as config_file:
+        settings = json.load(config_file)
+    required = {
+        "episodes", "alpha", "gamma", "epsilonStart", "epsilonEnd",
+        "epsilonDecayEpisodes", "maxStepsPerEpisode", "fpsVisual",
+        "fpsFast", "tileSize", "seed", "intrinsicRewardStrength",
+        "useIntrinsicReward", "monsterMoveChance",
+    }
+    missing = sorted(required.difference(settings))
+    if missing:
+        raise ValueError(f"Part I config is missing keys: {', '.join(missing)}")
+    if not 0.0 <= float(settings["epsilonEnd"]) <= float(settings["epsilonStart"]) <= 1.0:
+        raise ValueError("epsilonEnd and epsilonStart must satisfy 0 <= end <= start <= 1")
+    if not 0.0 <= float(settings["monsterMoveChance"]) <= 1.0:
+        raise ValueError("monsterMoveChance must be between 0 and 1")
+    if int(settings["episodes"]) < 1 or int(settings["maxStepsPerEpisode"]) < 1:
+        raise ValueError("episodes and maxStepsPerEpisode must be positive")
+    return settings
+
+
+CONFIG = load_config()
 
 LEVEL_OVERRIDES = {
     4: {"alpha": 0.3, "epsilonDecayEpisodes": 600},
@@ -630,4 +642,3 @@ if __name__ == "__main__":
         show_evaluation=not args.no_evaluation,
     )
     
-
