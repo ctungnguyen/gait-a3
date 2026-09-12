@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import csv
-import argparse
 import math
 import os
 import random
@@ -19,12 +18,12 @@ CONFIG = {
     "epsilonDecayEpisodes": 700,
     "maxStepsPerEpisode": 400,
     "fpsVisual": 25,
-    "fpsFast": 1000, # fast mode (originally 240)
+    "fpsFast": 1000,
     "tileSize": 48,
     "seed": 42,
-    "intrinsicRewardStrength": 0.1,
-    "useIntrinsicReward": False,
-    "monsterMoveChance": 0.4
+
+    "monsterMoveChance": 0.4,
+    "intrinsicRewardStrength": 0.1
 
 }
 
@@ -300,19 +299,7 @@ class BaseTabularAgent:
         self.eps_start = float(cfg["epsilonStart"])
         self.eps_end = float(cfg["epsilonEnd"])
         self.decay_ep = int(cfg["epsilonDecayEpisodes"])
-        self.intrinsic_strength = float(cfg.get("intrinsicRewardStrength", 0.0))
         self.qtable = QTable()
-        self.visit_counts: Dict[Tuple, int] = {}
-
-    def start_episode(self, initial_state: Tuple):
-        """Reset the per-episode exploration counts and record the start state."""
-        self.visit_counts = {initial_state: 1}
-
-    def intrinsic_reward(self, state: Tuple) -> float:
-        """Record a visit and return its novelty bonus for this episode."""
-        visits = self.visit_counts.get(state, 0)
-        self.visit_counts[state] = visits + 1
-        return self.intrinsic_strength / math.sqrt(visits + 1)
 
     def get_epsilon(self, ep: int) -> float:
         if self.decay_ep <= 0: return self.eps_end
@@ -353,58 +340,7 @@ def print_summary(log_rows: list):
     last = log_rows[-100:]
     avg_return = sum(r[1] for r in last) / len(last)
     death_count = sum(1 for r in last if r[4] == 1)
-    print(f">> Last {len(last)} episodes -> Avg Return: {avg_return:.2f} | "
-          f"Deaths: {death_count}/{len(last)}")
-
-
-def train_tabular(level_id: int, algorithm: str, cfg: Optional[dict] = None,
-                  use_intrinsic_reward: Optional[bool] = None) -> Tuple[BaseTabularAgent, list]:
-    """Train without rendering, making experiments and automated evaluation reproducible."""
-    settings = dict(CONFIG)
-    if cfg:
-        settings.update(cfg)
-    if level_id not in MAPS:
-        raise ValueError(f"Unknown level {level_id}; available levels: {sorted(MAPS)}")
-    if algorithm not in ("q_learning", "sarsa"):
-        raise ValueError("algorithm must be 'q_learning' or 'sarsa'")
-    agent = QLearningAgent(settings) if algorithm == "q_learning" else SARSAAgent(settings)
-    intrinsic = settings["useIntrinsicReward"] if use_intrinsic_reward is None else use_intrinsic_reward
-    env = GridWorld(MAPS[level_id])
-    rows = []
-    random.seed(settings.get("seed", 42))
-
-    for episode in range(int(settings["episodes"])):
-        state = env.reset()
-        agent.start_episode(state)
-        epsilon = agent.get_epsilon(episode)
-        action = agent.choose_action(state, epsilon)
-        episode_return = 0.0
-        result = None
-
-        for step in range(int(settings["maxStepsPerEpisode"])):
-            if algorithm == "q_learning":
-                action = agent.choose_action(state, epsilon)
-            result = env.step(action)
-            next_state, env_reward, done = result.next_state, result.reward, result.done
-            episode_return += env_reward
-            if step + 1 >= int(settings["maxStepsPerEpisode"]) and not done:
-                done = True
-            learning_reward = env_reward
-            if intrinsic:
-                learning_reward += agent.intrinsic_reward(next_state)
-
-            if algorithm == "q_learning":
-                agent.update(state, action, learning_reward, next_state, done)
-            else:
-                next_action = agent.choose_action(next_state, epsilon) if not done else 0
-                agent.update(state, action, learning_reward, next_state, next_action, done)
-                action = next_action
-            state = next_state
-            if done:
-                break
-        rows.append([episode + 1, episode_return, step + 1, epsilon,
-                     int(result is not None and result.info.get("event") == "death")])
-    return agent, rows
+    print(f">> Last 100 episodes -> Avg Return: {avg_return:.2f} | Deaths: {death_count}/100")
 
 
 def render_frame(screen, font, env: GridWorld, level_id: int, algo_name: str,
@@ -462,40 +398,26 @@ def render_frame(screen, font, env: GridWorld, level_id: int, algo_name: str,
     pygame.display.flip()
 
 
-def run_experiment(
-    level_id: int = 0,
-    algorithm: str = "q_learning",
-    use_intrinsic_reward: Optional[bool] = None,
-    show_evaluation: bool = True):
-    if level_id not in MAPS:
-        raise ValueError(
-            f"Unknown level {level_id}; available levels: {sorted(MAPS)}"
-        )
+def run_experiment(level_id: int = 0, algorithm: str = "q_learning", use_intrinsic: Optional[bool] = None):
+    if use_intrinsic is None:
+        use_intrinsic = level_id in INTRINSIC_LEVELS
 
-    if algorithm not in ("q_learning", "sarsa"):
-        raise ValueError("algorithm must be 'q_learning' or 'sarsa'")
-
-    random.seed(CONFIG.get("seed", 42))
-
-    use_intrinsic = (
-        bool(CONFIG["useIntrinsicReward"])
-        if use_intrinsic_reward is None
-        else use_intrinsic_reward
-    )
+    cfg = dict(CONFIG)
+    cfg.update(LEVEL_OVERRIDES.get(level_id, {}))
 
     pygame.init()
     layout = MAPS[level_id]
-    env = GridWorld(layout, monster_move_chance=CONFIG["monsterMoveChance"])
-    screen = pygame.display.set_mode((env.w * CONFIG["tileSize"], env.h * CONFIG["tileSize"]))
+    env = GridWorld(layout, monster_move_chance=cfg["monsterMoveChance"])
+    screen = pygame.display.set_mode((env.w * cfg["tileSize"], env.h * cfg["tileSize"]))
     pygame.display.set_caption(f"Part 1 Demo - Level {level_id} ({algorithm.upper()})")
     clock = pygame.time.Clock()
     font = pygame.font.Font(None, 20)
 
-    agent = QLearningAgent(CONFIG) if algorithm == "q_learning" else SARSAAgent(CONFIG)
+    agent = QLearningAgent(cfg) if algorithm == "q_learning" else SARSAAgent(cfg)
     visits = VisitCounter()
-    intrinsic_strength = CONFIG["intrinsicRewardStrength"]
-    episodes = CONFIG["episodes"]
-    max_steps = CONFIG["maxStepsPerEpisode"]
+    intrinsic_strength = cfg["intrinsicRewardStrength"]
+    episodes = cfg["episodes"]
+    max_steps = cfg["maxStepsPerEpisode"]
     is_fast = False
     running = True
     log_rows = []
@@ -537,8 +459,6 @@ def run_experiment(
             sp, r, done = res.next_state, res.reward, res.done
             ep_score += r
             steps += 1
-            if steps >= max_steps and not done:
-                done = True
 
             update_r = r
             if use_intrinsic:
@@ -547,7 +467,7 @@ def run_experiment(
             if algorithm == "q_learning":
                 agent.update(s, a, update_r, sp, done)
             elif algorithm == "sarsa":
-                ap = agent.choose_action(sp, eps) if not done else 0
+                ap = agent.choose_action(sp, eps)
                 agent.update(s, a, update_r, sp, ap, done)
                 a = ap
 
@@ -556,7 +476,7 @@ def run_experiment(
             render_frame(screen, font, env, level_id, algorithm, ep, episodes, steps, eps, ep_score,
                          use_intrinsic=use_intrinsic, is_eval=False)
 
-            clock.tick(CONFIG["fpsFast"] if is_fast else CONFIG["fpsVisual"])
+            clock.tick(cfg["fpsFast"] if is_fast else cfg["fpsVisual"])
 
             if done or steps >= max_steps:
                 break
@@ -575,9 +495,6 @@ def run_experiment(
         print(f">> Log saved to {path}")
         print_summary(log_rows)
 
-    if not show_evaluation:
-        pygame.quit()
-        return
 
     # Evaluation Mode
     print("\n>> Training complete! Starting Evaluation Mode (optimal policy, eps = 0.0)...")
@@ -610,24 +527,15 @@ def run_experiment(
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Train and visualize a tabular GridWorld agent.")
-    parser.add_argument("--level", type=int, choices=sorted(MAPS), default=3)
-    parser.add_argument("--algorithm", choices=("q_learning", "sarsa"), default="q_learning")
-    parser.add_argument("--episodes", type=int, help="Override the configured training episode count.")
-    parser.add_argument("--intrinsic", action="store_true",
-                        help="Add Level 6 intrinsic reward to learning updates.")
-    parser.add_argument("--no-evaluation", action="store_true",
-                        help="Exit after training instead of opening evaluation mode.")
-    args = parser.parse_args()
-    if args.episodes is not None:
-        if args.episodes < 1:
-            parser.error("--episodes must be at least 1")
-        CONFIG["episodes"] = args.episodes
-    run_experiment(
-        level_id=args.level,
-        algorithm=args.algorithm,
-        use_intrinsic_reward=True if args.intrinsic else None,
-        show_evaluation=not args.no_evaluation,
-    )
-    
+    run_experiment(level_id=6, algorithm="q_learning", use_intrinsic=True)
 
+    # run_experiment(level_id=6, algorithm="q_learning", use_intrinsic=True (or False))
+    # ONLY add use_intrinsic for level 6, not for other levels
+
+    # run_experiment(level_id=1, algorithm="q_learning")
+
+    # run_experiment(level_id=2, algorithm="q_learning")
+
+    # run_experiment(level_id=3, algorithm="q_learning")
+
+    # lvl 4 for cool monsters, lvl 5 for monsters AND obstacles, lvl 6 for intrinsic reward
