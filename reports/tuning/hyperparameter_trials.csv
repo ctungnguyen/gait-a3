@@ -1,7 +1,0 @@
-control_style,preset,timesteps,seed,mean_return,std_return,success_rate,mean_max_phase,mean_episode_steps,model
-rotation,baseline,50000,4200,-27.72005995988487,0.517720131088548,0.0,1.0,316.2,C:\Users\Admin\Documents\GitHub\gait-a3\models\tuning\rotation_tune_baseline.zip
-rotation,exploratory,50000,4200,-29.080967352724123,3.347759285104789,0.0,1.0,272.3,C:\Users\Admin\Documents\GitHub\gait-a3\models\tuning\rotation_tune_exploratory.zip
-rotation,stable,50000,4200,-40.88320000000001,0.02804924241401459,0.0,1.0,212.1,C:\Users\Admin\Documents\GitHub\gait-a3\models\tuning\rotation_tune_stable.zip
-direct,baseline,50000,4200,-40.61023270052398,0.01499866660740264,0.0,1.0,254.4,C:\Users\Admin\Documents\GitHub\gait-a3\models\tuning\direct_tune_baseline.zip
-direct,exploratory,50000,4200,-40.61023270052398,0.01499866660740264,0.0,1.0,254.4,C:\Users\Admin\Documents\GitHub\gait-a3\models\tuning\direct_tune_exploratory.zip
-direct,stable,50000,4200,-40.68523270052397,0.01889338508579425,0.0,1.0,254.4,C:\Users\Admin\Documents\GitHub\gait-a3\models\tuning\direct_tune_stable.zip
