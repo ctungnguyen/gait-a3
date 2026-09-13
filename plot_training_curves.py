@@ -6,8 +6,8 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from arena import ControlStyle
-from training.plots import plot_evaluation_curves
+from part2.arena import ControlStyle
+from part2.training.plots import plot_evaluation_curves
 
 
 def main() -> None:

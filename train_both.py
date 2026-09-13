@@ -7,12 +7,12 @@ import argparse
 import json
 from pathlib import Path
 
-from arena import ArenaConfig, ControlStyle
+from part2.arena import ArenaConfig, ControlStyle
 from train_agent import _dry_run
-from training.artifacts import PROJECT_ROOT
-from training.config import load_training_settings
-from training.pipeline import train_style
-from training.plots import plot_evaluation_curves
+from part2.training.artifacts import PROJECT_ROOT
+from part2.training.config import load_training_settings
+from part2.training.pipeline import train_style
+from part2.training.plots import plot_evaluation_curves
 
 
 def main() -> None:

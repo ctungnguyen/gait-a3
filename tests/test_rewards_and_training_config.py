@@ -9,14 +9,15 @@ import unittest
 
 import numpy as np
 
-from arena import ControlStyle, make_direct_env
-from arena.core import ArenaCore
-from arena.entities import ArenaEvent, Projectile, StepOutcome
-from arena.math2d import normalized, vec
-from arena.rewards import ProgressionReward
-from training.artifacts import ArtifactPaths, sha256_file
-from training.config import load_training_settings
-from training.evaluation import summarize_episodes, validate_model_contract
+from part2.arena import ControlStyle, make_direct_env
+from part2.arena.core import ArenaCore
+from part2.arena.entities import ArenaEvent, Projectile, StepOutcome
+from part2.arena.math2d import normalized, vec
+from part2.arena.rewards import ProgressionReward
+from part2.arena.adapters import OBSERVATION_SIZE
+from part2.training.artifacts import ArtifactPaths, sha256_file
+from part2.training.config import load_training_settings
+from part2.training.evaluation import summarize_episodes, validate_model_contract
 
 
 PROJECT_ROOT = Path(__file__).parents[1]
@@ -135,7 +136,7 @@ class ProgressionRewardTests(unittest.TestCase):
 
 
 class TrainingConfigurationTests(unittest.TestCase):
-    config_path = PROJECT_ROOT / "config" / "training.json"
+    config_path = PROJECT_ROOT / "part2" / "config" / "training.json"
 
     def test_default_ppo_configuration_has_two_hidden_layers(self):
         settings = load_training_settings(self.config_path)
@@ -191,7 +192,7 @@ class TrainingConfigurationTests(unittest.TestCase):
                             "ROTATE_RIGHT",
                             "SHOOT",
                         ],
-                        "observation_size": 21,
+                        "observation_size": OBSERVATION_SIZE,
                         "model_sha256": sha256_file(model_path),
                     }
                 ),

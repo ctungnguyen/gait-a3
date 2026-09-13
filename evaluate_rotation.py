@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Visual evaluation entry point for the rotation/thrust agent only."""
 
-from arena import ControlStyle
+from part2.arena import ControlStyle
 from evaluate_agent import default_model_path, evaluate_style
 
 

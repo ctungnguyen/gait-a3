@@ -8,10 +8,10 @@ import csv
 import json
 from pathlib import Path
 
-from arena import ArenaConfig, ControlStyle
-from training.artifacts import PROJECT_ROOT, write_json
-from training.config import load_training_settings
-from training.pipeline import train_style
+from part2.arena import ArenaConfig, ControlStyle
+from part2.training.artifacts import PROJECT_ROOT, write_json
+from part2.training.config import load_training_settings
+from part2.training.pipeline import train_style
 
 
 PRESETS = ("baseline", "exploratory", "stable")

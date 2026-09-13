@@ -1,5 +1,5 @@
 import numpy as np
-from arena import make_direct_env, make_rotation_env
+from part2.arena import make_direct_env, make_rotation_env
 
 for name, env_factory in [("Direct", make_direct_env), ("Rotation", make_rotation_env)]:
     env = env_factory()

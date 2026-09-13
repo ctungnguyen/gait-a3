@@ -1,0 +1,15 @@
+{
+  "run_name": "level5_q_learning",
+  "level": 5,
+  "algorithm": "q_learning",
+  "intrinsic_enabled": false,
+  "episodes": 30,
+  "mean_environment_return": 5.0,
+  "return_std": 0.0,
+  "success_rate": 1,
+  "death_rate": 0,
+  "truncation_rate": 0,
+  "mean_steps": 21.366666666666667,
+  "mean_success_steps": 21.366666666666667,
+  "mean_monster_moves": 8.866666666666667
+}

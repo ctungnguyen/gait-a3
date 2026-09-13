@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import argparse
 
-from arena import ArenaEnv, ControlStyle, LegacyArenaAdapter
+from shared import theme_names
+
+from part2.arena import ArenaEnv, ControlStyle, LegacyArenaAdapter
 
 
 def main() -> None:
@@ -16,12 +18,18 @@ def main() -> None:
     parser.add_argument("--legacy", action="store_true", help="Use the assignment's four-value API")
     parser.add_argument("--render", action="store_true")
     parser.add_argument("--debug", action="store_true", help="Show visual debugger (requires --render)")
+    parser.add_argument("--theme", choices=theme_names(), default="neon")
     args = parser.parse_args()
     if args.debug and not args.render:
         parser.error("--debug requires --render")
 
     render_mode = "human" if args.render else None
-    modern = ArenaEnv(control_style=ControlStyle(args.style), render_mode=render_mode, seed=args.seed)
+    modern = ArenaEnv(
+        control_style=ControlStyle(args.style),
+        render_mode=render_mode,
+        seed=args.seed,
+        theme=args.theme,
+    )
     env = LegacyArenaAdapter(modern) if args.legacy else modern
     env.reset(seed=args.seed)
 

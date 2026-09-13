@@ -1,0 +1,40 @@
+{
+  "algorithm": "PPO",
+  "episodes_per_style": 30,
+  "fair_comparison": "Same Arena, reward, deterministic policy, and episode seeds",
+  "results": {
+    "direct": {
+      "episodes": 30,
+      "highest_phase": 2,
+      "max_return": 87.22413907630613,
+      "mean_damage_dealt": 466.6666666666667,
+      "mean_damage_taken": 100.0,
+      "mean_enemies_destroyed": 19.8,
+      "mean_episode_steps": 996.6666666666666,
+      "mean_max_phase": 1.2333333333333334,
+      "mean_return": 14.995967616362483,
+      "mean_shots_fired": 112.26666666666667,
+      "mean_spawners_destroyed": 0.6666666666666666,
+      "min_return": -34.59652877242748,
+      "std_return": 36.2582316293792,
+      "success_rate": 0.23333333333333334
+    },
+    "rotation": {
+      "episodes": 30,
+      "highest_phase": 1,
+      "max_return": -25.201031736960765,
+      "mean_damage_dealt": 71.0,
+      "mean_damage_taken": 100.0,
+      "mean_enemies_destroyed": 1.0333333333333334,
+      "mean_episode_steps": 305.6333333333333,
+      "mean_max_phase": 1.0,
+      "mean_return": -27.572612577050847,
+      "mean_shots_fired": 10.833333333333334,
+      "mean_spawners_destroyed": 1.0,
+      "min_return": -28.739737682782767,
+      "std_return": 0.6720680783081009,
+      "success_rate": 0.0
+    }
+  },
+  "shared_episode_seed_start": 12000
+}

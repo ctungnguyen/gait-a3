@@ -5,7 +5,7 @@ import unittest
 
 import numpy as np
 
-from arena import (
+from part2.arena import (
     ControlStyle,
     DirectAction,
     RotationAction,
@@ -13,7 +13,7 @@ from arena import (
     make_direct_env,
     make_rotation_env,
 )
-from arena.controls import action_count, action_name, decode_action
+from part2.arena.controls import action_count, action_name, decode_action
 
 
 class Block4ControlContractTests(unittest.TestCase):

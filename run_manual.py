@@ -6,7 +6,9 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from arena import (
+from shared import theme_names
+
+from part2.arena import (
     ArenaConfig,
     ArenaEnv,
     ControlStyle,
@@ -24,7 +26,8 @@ def parse_args() -> argparse.Namespace:
         help="Block 4 control scheme to verify (default: direct)",
     )
     parser.add_argument("--seed", type=int, default=42)
-    default_config = Path(__file__).resolve().parent / "config" / "arena.json"
+    parser.add_argument("--theme", choices=theme_names(), default="neon")
+    default_config = Path(__file__).resolve().parent / "part2" / "config" / "arena.json"
     parser.add_argument("--config", type=Path, default=default_config)
     return parser.parse_args()
 
@@ -68,7 +71,13 @@ def main() -> None:
     args = parse_args()
     config = ArenaConfig.from_json(args.config)
     style = ControlStyle(args.style)
-    env = ArenaEnv(config=config, control_style=style, render_mode="human", seed=args.seed)
+    env = ArenaEnv(
+        config=config,
+        control_style=style,
+        render_mode="human",
+        seed=args.seed,
+        theme=args.theme,
+    )
     env.reset(seed=args.seed)
     debug_enabled = False
 

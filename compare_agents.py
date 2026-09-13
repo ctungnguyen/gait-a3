@@ -8,11 +8,11 @@ import csv
 import json
 from pathlib import Path
 
-from arena import ArenaConfig, ControlStyle
-from training.artifacts import PROJECT_ROOT, write_json
-from training.config import load_training_settings
-from training.evaluation import evaluate_model, load_ppo_model, validate_model_contract
-from training.plots import plot_evaluation_curves
+from part2.arena import ArenaConfig, ControlStyle
+from part2.training.artifacts import PROJECT_ROOT, write_json
+from part2.training.config import load_training_settings
+from part2.training.evaluation import evaluate_model, load_ppo_model, validate_model_contract
+from part2.training.plots import plot_evaluation_curves
 
 
 def main() -> None:

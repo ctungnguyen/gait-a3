@@ -7,9 +7,11 @@ import argparse
 from pathlib import Path
 import sys
 
-from arena import ControlStyle, make_direct_env, make_rotation_env
-from training.artifacts import PROJECT_ROOT, load_metadata_for_model
-from training.config import load_training_settings
+from part2.arena import ControlStyle, make_direct_env, make_rotation_env
+from part2.training.artifacts import PROJECT_ROOT, load_metadata_for_model
+from part2.training.config import load_training_settings
+
+REPOSITORY_ROOT = Path(__file__).resolve().parent
 
 
 def report(name: str, passed: bool, detail: str) -> bool:
@@ -66,7 +68,7 @@ def main() -> None:
         "compare_agents.py",
         "plot_training_curves.py",
     )
-    missing_scripts = [name for name in required_scripts if not (PROJECT_ROOT / name).exists()]
+    missing_scripts = [name for name in required_scripts if not (REPOSITORY_ROOT / name).exists()]
     passed &= report(
         "Training/evaluation scripts",
         not missing_scripts,
@@ -78,7 +80,7 @@ def main() -> None:
         raise SystemExit(0 if passed else 1)
 
     try:
-        from training.evaluation import load_ppo_model, validate_model_contract
+        from part2.training.evaluation import load_ppo_model, validate_model_contract
     except ImportError as exc:
         report("SB3 import", False, str(exc))
         raise SystemExit(1) from exc
@@ -139,6 +141,8 @@ def main() -> None:
         "control_style_comparison.csv",
         "control_style_comparison.json",
         "training_curves_final.png",
+        "model_selection/model_selection.csv",
+        "model_selection/model_selection.json",
     ):
         path = PROJECT_ROOT / "reports" / name
         passed &= report(name, path.exists(), str(path))

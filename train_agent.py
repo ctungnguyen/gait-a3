@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 from typing import Sequence
 
-from arena import (
+from part2.arena import (
     ArenaConfig,
     ControlStyle,
     action_names,
@@ -16,9 +16,9 @@ from arena import (
     make_progression_reward,
     make_rotation_env,
 )
-from training.artifacts import PROJECT_ROOT
-from training.config import load_training_settings
-from training.pipeline import train_style
+from part2.training.artifacts import PROJECT_ROOT
+from part2.training.config import load_training_settings
+from part2.training.pipeline import train_style
 
 
 def build_parser(default_style: ControlStyle | None = None) -> argparse.ArgumentParser:

@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import unittest
 
-from arena.config import ArenaConfig
-from arena.controls import ControlCommand, ControlStyle, decode_action
-from arena.core import ArenaCore
-from arena.entities import Enemy, Projectile
-from arena.math2d import length, vec
+from part2.arena.config import ArenaConfig
+from part2.arena.controls import ControlCommand, ControlStyle, decode_action
+from part2.arena.core import ArenaCore
+from part2.arena.entities import Enemy, Projectile
+from part2.arena.math2d import length, vec
 
 
 class ArenaCoreTests(unittest.TestCase):

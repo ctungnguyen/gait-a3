@@ -1,0 +1,15 @@
+{
+  "run_name": "level1_sarsa",
+  "level": 1,
+  "algorithm": "sarsa",
+  "intrinsic_enabled": false,
+  "episodes": 30,
+  "mean_environment_return": 1.0,
+  "return_std": 0.0,
+  "success_rate": 1,
+  "death_rate": 0,
+  "truncation_rate": 0,
+  "mean_steps": 19,
+  "mean_success_steps": 19,
+  "mean_monster_moves": 0
+}

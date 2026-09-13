@@ -16,6 +16,6 @@ official framework maintainers:
 - Gymnasium environment API (`reset`, `step`, termination and truncation):
   https://gymnasium.farama.org/api/env/
 
-No pretrained third-party model is supplied. The final two models must be
-trained from this submitted Arena and configuration so the video, models, logs,
-and source code all match.
+No pretrained third-party model is used. Both included PPO models were trained
+from this submitted Arena/configuration, have matching TensorBoard/evaluation
+evidence and SHA-256 metadata, and can be reproduced with the documented scripts.

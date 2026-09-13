@@ -5,7 +5,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import Mock, patch
 
-from arena import ControlStyle
+from part2.arena import ControlStyle
 import evaluate_agent
 
 

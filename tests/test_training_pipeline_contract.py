@@ -9,11 +9,11 @@ from unittest.mock import patch
 
 import numpy as np
 
-from arena import ArenaConfig, ControlStyle
-from training import artifacts
-from training.config import load_training_settings
-from training.pipeline import train_style
-import training.pipeline as pipeline
+from part2.arena import ArenaConfig, ControlStyle
+from part2.training import artifacts
+from part2.training.config import load_training_settings
+from part2.training.pipeline import train_style
+import part2.training.pipeline as pipeline
 
 
 PROJECT_ROOT = Path(__file__).parents[1]
@@ -100,7 +100,7 @@ class TrainingPipelineContractTests(unittest.TestCase):
             "DummyVecEnv": FakeDummyVecEnv,
         }
         settings = load_training_settings(
-            PROJECT_ROOT / "config" / "training.json",
+            PROJECT_ROOT / "part2" / "config" / "training.json",
             total_timesteps=8,
             n_envs=1,
             final_eval_episodes=2,

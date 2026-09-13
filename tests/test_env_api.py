@@ -4,9 +4,9 @@ import unittest
 
 import numpy as np
 
-from arena.adapters import OBSERVATION_SIZE
-from arena.controls import ControlStyle
-from arena.env import ArenaEnv, LegacyArenaAdapter
+from part2.arena.adapters import OBSERVATION_SIZE
+from part2.arena.controls import ControlStyle
+from part2.arena.env import ArenaEnv, LegacyArenaAdapter
 
 
 class ArenaEnvironmentApiTests(unittest.TestCase):

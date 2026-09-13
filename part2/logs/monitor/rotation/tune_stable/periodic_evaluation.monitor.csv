@@ -1,0 +1,7 @@
+#{"t_start": 1789175475.2772243, "env_id": "None"}
+r,l,t,episode_max_phase,episode_phases_advanced,episode_enemies_destroyed,episode_spawners_destroyed,episode_shots_fired,episode_damage_dealt,episode_damage_taken,is_success
+-40.86,205,37.126722,1,0,0,0,30,0.0,100.0,False
+-40.949,227,37.318481,1,0,0,0,33,0.0,100.0,False
+-40.837,201,37.490495,1,0,0,0,29,0.0,100.0,False
+-40.829,197,37.641008,1,0,0,0,29,0.0,100.0,False
+-40.862,206,37.798293,1,0,0,0,30,0.0,100.0,False

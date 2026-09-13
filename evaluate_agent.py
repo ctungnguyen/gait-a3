@@ -9,16 +9,18 @@ from typing import Sequence
 
 import numpy as np
 
-from arena import (
+from shared import theme_names
+
+from part2.arena import (
     ArenaConfig,
     ControlStyle,
     ProgressionReward,
     make_direct_env,
     make_rotation_env,
 )
-from training.artifacts import PROJECT_ROOT
-from training.config import load_training_settings
-from training.evaluation import load_ppo_model, validate_model_contract
+from part2.training.artifacts import PROJECT_ROOT
+from part2.training.config import load_training_settings
+from part2.training.evaluation import load_ppo_model, validate_model_contract
 
 
 def _model_path(value: str | Path) -> Path:
@@ -52,6 +54,7 @@ def _build_parser(style: ControlStyle, default_model: Path) -> argparse.Argument
     parser.add_argument("--device", default="auto")
     parser.add_argument("--stochastic", action="store_true")
     parser.add_argument("--debug", action="store_true")
+    parser.add_argument("--theme", choices=theme_names(), default="neon")
     parser.add_argument("--config", type=Path, default=PROJECT_ROOT / "config" / "arena.json")
     parser.add_argument(
         "--training-config",
@@ -90,6 +93,7 @@ def evaluate_style(
         reward_fn=ProgressionReward(settings.reward),
         render_mode="human",
         seed=args.seed,
+        theme=args.theme,
     )
 
     try:

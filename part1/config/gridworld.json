@@ -1,0 +1,26 @@
+{
+  "training": {
+    "episodes": 5000,
+    "alpha": 0.25,
+    "gamma": 0.97,
+    "epsilonStart": 1.0,
+    "epsilonEnd": 0.05,
+    "epsilonDecayEpisodes": 3500,
+    "maxStepsPerEpisode": 350,
+    "evaluationEpisodes": 30,
+    "fpsVisual": 12,
+    "tileSize": 56,
+    "seed": 42,
+    "intrinsicRewardStrength": 0.01,
+    "monsterMoveChance": 0.4
+  },
+  "levelOverrides": {
+    "0": {"episodes": 4500, "epsilonDecayEpisodes": 3200, "maxStepsPerEpisode": 240},
+    "1": {"episodes": 7000, "epsilonDecayEpisodes": 5000},
+    "2": {"episodes": 8000, "epsilonDecayEpisodes": 5500},
+    "3": {"episodes": 12000, "epsilonDecayEpisodes": 8500},
+    "4": {"episodes": 18000, "alpha": 0.2, "epsilonDecayEpisodes": 13000},
+    "5": {"episodes": 24000, "alpha": 0.2, "epsilonDecayEpisodes": 18000},
+    "6": {"episodes": 14000, "alpha": 0.2, "epsilonDecayEpisodes": 10000, "maxStepsPerEpisode": 500}
+  }
+}
