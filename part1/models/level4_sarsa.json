@@ -7,6 +7,7 @@
     "intrinsic_rule": "r_i = intrinsicRewardStrength / sqrt(n(s) + 1)",
     "level": 4,
     "level_name": "Moving Threat",
+    "level_signature": "19295813f4a09518f3c34f18475bda560afd9affc41916073a422c162bd49800",
     "q_learning_rule": "Q(s,a) <- Q(s,a) + alpha[r + gamma max_a' Q(s',a') - Q(s,a)]",
     "sarsa_rule": "Q(s,a) <- Q(s,a) + alpha[r + gamma Q(s',a') - Q(s,a)]",
     "settings": {

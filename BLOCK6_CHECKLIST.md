@@ -3,7 +3,7 @@
 ## Code implementation
 
 - [x] Stable Baselines3 PPO selected consistently for both agents
-- [x] `MlpPolicy` uses at least one hidden layer (`[128, 128]` baseline)
+- [x] `MlpPolicy` uses two hidden layers (`[256, 256]` for both final focus runs)
 - [x] Headless training with no Pygame rendering
 - [x] Four seeded training environments
 - [x] Separate rotation/thrust and direct-direction model outputs
@@ -49,9 +49,10 @@ expected Block 6 artifacts are present and match their control contracts.
 ## Report evidence to extract
 
 - PPO choice and why the same algorithm was used for a fair comparison
-- Fixed 25-value observation vector
+- Fixed 26-value observation vector (including signed spawner bearing)
 - Exact `Discrete(5)` versus `Discrete(6)` mappings
-- Two-hidden-layer MLP architecture
+- Two-hidden-layer MLP architectures and the reason Rotation received the
+  larger focus preset
 - Final reward table and justification
 - The three measured tuning configurations and selection rule
 - TensorBoard/evaluation learning curves

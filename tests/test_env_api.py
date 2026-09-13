@@ -4,7 +4,11 @@ import unittest
 
 import numpy as np
 
-from part2.arena.adapters import OBSERVATION_SIZE
+from part2.arena.adapters import (
+    OBSERVATION_LABELS,
+    OBSERVATION_SIZE,
+    build_baseline_observation,
+)
 from part2.arena.controls import ControlStyle
 from part2.arena.env import ArenaEnv, LegacyArenaAdapter
 
@@ -40,6 +44,23 @@ class ArenaEnvironmentApiTests(unittest.TestCase):
         self.assertEqual(env.action_space.n, 5)
         env.step(4)
         self.assertEqual(len(env.core.projectiles), 1)
+        env.close()
+
+    def test_spawner_observation_contains_signed_turn_direction(self):
+        env = ArenaEnv(control_style=ControlStyle.ROTATION, seed=3)
+        target = env.core.nearest_spawner()
+        target_angle = float(
+            np.arctan2(
+                target.pos[1] - env.core.player.pos[1],
+                target.pos[0] - env.core.player.pos[0],
+            )
+        )
+        index = OBSERVATION_LABELS.index("nearest_spawner_aim_ortho")
+        env.core.player.angle = target_angle + 0.5
+        first = float(build_baseline_observation(env.core)[index])
+        env.core.player.angle = target_angle - 0.5
+        second = float(build_baseline_observation(env.core)[index])
+        self.assertLess(first * second, 0.0)
         env.close()
 
     def test_legacy_adapter_matches_assignment_four_value_api(self):

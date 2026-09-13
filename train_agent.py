@@ -25,7 +25,21 @@ def build_parser(default_style: ControlStyle | None = None) -> argparse.Argument
     parser = argparse.ArgumentParser(description="Train a GAIT Part II PPO agent")
     if default_style is None:
         parser.add_argument("--style", choices=("rotation", "direct"), required=True)
-    parser.add_argument("--preset", choices=("baseline", "exploratory", "stable"), default="baseline")
+    default_preset = (
+        "rotation_focus"
+        if default_style is ControlStyle.ROTATION
+        else "direct_focus" if default_style is ControlStyle.DIRECT else "baseline"
+    )
+    parser.add_argument(
+        "--preset",
+        choices=("baseline", "exploratory", "stable", "rotation_focus", "direct_focus"),
+        default=default_preset,
+        help=(
+            "PPO configuration preset; train_rotation.py defaults to the longer "
+            "rotation_focus/direct_focus runs, while the generic entry point "
+            "defaults to baseline"
+        ),
+    )
     parser.add_argument("--timesteps", type=int)
     parser.add_argument("--n-envs", type=int)
     parser.add_argument("--seed", type=int)
@@ -44,7 +58,10 @@ def _dry_run(style: ControlStyle, arena_config: ArenaConfig, settings) -> None:
     factory = make_rotation_env if style is ControlStyle.ROTATION else make_direct_env
     env = factory(
         config=arena_config,
-        reward_fn=make_progression_reward(settings.reward.to_dict()),
+        reward_fn=make_progression_reward(
+            settings.reward.to_dict(),
+            control_style=style,
+        ),
         seed=settings.seed,
     )
     observation, info = env.reset(seed=settings.seed)

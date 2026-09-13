@@ -7,6 +7,7 @@
     "intrinsic_rule": "r_i = intrinsicRewardStrength / sqrt(n(s) + 1)",
     "level": 3,
     "level_name": "Rock and Fire",
+    "level_signature": "4592ec0e8da427bedbabae275928a1781138c19fbe3c0bbd4344a75676c00977",
     "q_learning_rule": "Q(s,a) <- Q(s,a) + alpha[r + gamma max_a' Q(s',a') - Q(s,a)]",
     "sarsa_rule": "Q(s,a) <- Q(s,a) + alpha[r + gamma Q(s',a') - Q(s,a)]",
     "settings": {

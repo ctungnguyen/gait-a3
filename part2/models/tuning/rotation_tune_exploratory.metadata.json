@@ -46,31 +46,31 @@
     "width": 960
   },
   "control_style": "rotation",
-  "created_utc": "2026-09-12T01:11:15.254023+00:00",
+  "created_utc": "2026-09-13T11:04:34.378382+00:00",
   "dependency_versions": {
-    "gymnasium": "1.3.0",
-    "numpy": "2.5.3",
-    "stable_baselines3": "2.9.0",
-    "torch": "2.14.0+cpu"
+    "gymnasium": "1.2.2",
+    "numpy": "2.3.5",
+    "stable_baselines3": "2.7.1",
+    "torch": "2.14.0+cu130"
   },
   "final_evaluation": {
     "episodes": 10,
     "highest_phase": 1,
-    "max_return": -27.177689571857528,
-    "mean_damage_dealt": 66.0,
+    "max_return": -33.48273301417006,
+    "mean_damage_dealt": 45.0,
     "mean_damage_taken": 100.0,
-    "mean_enemies_destroyed": 1.2,
-    "mean_episode_steps": 272.3,
+    "mean_enemies_destroyed": 2.1,
+    "mean_episode_steps": 256.6,
     "mean_max_phase": 1.0,
-    "mean_return": -28.966000566816387,
-    "mean_shots_fired": 10.5,
-    "mean_spawners_destroyed": 0.8,
-    "min_return": -35.81055162334438,
-    "std_return": 3.4065466479816666,
+    "mean_return": -35.35220141944734,
+    "mean_shots_fired": 13.2,
+    "mean_spawners_destroyed": 0.0,
+    "min_return": -36.06597764879835,
+    "std_return": 0.6828917931407522,
     "success_rate": 0.0
   },
   "model_file": "rotation_tune_exploratory.zip",
-  "model_sha256": "912135efd3a99ca2eb4f59355d39fc712a7941af1ca9e149371b44c878419c1a",
+  "model_sha256": "b032b5a2128b4d7d96bf4ece3f5aac90999ec39c644ee62ee6dff6707a2e628b",
   "observation_labels": [
     "player_x",
     "player_y",
@@ -90,6 +90,7 @@
     "nearest_spawner_unit_dir_y",
     "nearest_spawner_distance",
     "nearest_spawner_aim_alignment",
+    "nearest_spawner_aim_ortho",
     "nearest_spawner_health",
     "nearest_spawner_present",
     "player_health",
@@ -98,10 +99,10 @@
     "enemy_density",
     "spawner_density"
   ],
-  "observation_size": 25,
-  "platform": "Windows-11-10.0.26200-SP0",
-  "python_version": "3.12.10",
-  "schema_version": 1,
+  "observation_size": 26,
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "python_version": "3.12.14",
+  "schema_version": 2,
   "training": {
     "activation": "tanh",
     "actual_timesteps": 53248,
@@ -131,6 +132,7 @@
     "preset": "exploratory",
     "promoted_to_canonical_path": false,
     "reward": {
+      "aim_progress": 0.035,
       "aligned_shot": 0.08,
       "aligned_shot_threshold": 0.92,
       "approach_progress": 0.015,
@@ -147,7 +149,7 @@
     },
     "run_name": "tune_exploratory",
     "seed": 4200,
-    "selected_checkpoint": "rotation\\tune_exploratory_best\\best_model.zip",
+    "selected_checkpoint": "models/rotation/tune_exploratory_best/best_model.zip",
     "total_timesteps": 50000
   }
 }

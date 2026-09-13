@@ -7,6 +7,7 @@
     "intrinsic_rule": "r_i = intrinsicRewardStrength / sqrt(n(s) + 1)",
     "level": 6,
     "level_name": "Sparse Maze",
+    "level_signature": "f32b0d2eb71758d7b693a3eb8740d0f55fb89eb1f677471c13aea30d1ae4b883",
     "q_learning_rule": "Q(s,a) <- Q(s,a) + alpha[r + gamma max_a' Q(s',a') - Q(s,a)]",
     "sarsa_rule": "Q(s,a) <- Q(s,a) + alpha[r + gamma Q(s',a') - Q(s,a)]",
     "settings": {

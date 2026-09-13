@@ -13,7 +13,7 @@ from typing import Callable, Iterable
 from .agents import BaseTabularAgent, QLearningAgent, SARSAAgent, make_agent
 from .config import DEFAULT_CONFIG_PATH, GridworldSettings, PART1_ROOT, load_gridworld_settings
 from .environment import ACTIONS, GridWorld, State
-from .levels import LevelDefinition, get_level
+from .levels import LevelDefinition, get_level, level_signature
 
 
 @dataclass(frozen=True)
@@ -260,6 +260,7 @@ def save_training_result(
         "task": result.level.task,
         "algorithm": result.algorithm,
         "intrinsic_enabled": result.intrinsic_enabled,
+        "level_signature": level_signature(result.level),
         "settings": asdict(result.settings),
         "q_learning_rule": "Q(s,a) <- Q(s,a) + alpha[r + gamma max_a' Q(s',a') - Q(s,a)]",
         "sarsa_rule": "Q(s,a) <- Q(s,a) + alpha[r + gamma Q(s',a') - Q(s,a)]",
@@ -329,6 +330,34 @@ def shortest_collectible_steps(level: LevelDefinition) -> int | None:
             )
             if complete:
                 return distance + 1
+            if state not in seen:
+                seen.add(state)
+                frontier.append((state, distance + 1))
+    return None
+
+
+def shortest_external_reward_steps(level: LevelDefinition) -> int | None:
+    """Exact static baseline to the first +1 apple or +2 chest reward."""
+
+    environment = GridWorld(level, monster_move_chance=0.0, seed=0)
+    if environment.monsters:
+        return None
+    assert environment.start is not None
+    frontier = deque([((environment.start, 0), 0)])
+    seen = {(environment.start, 0)}
+    while frontier:
+        (position, has_key), distance = frontier.popleft()
+        for dx, dy in ACTIONS:
+            candidate = (position[0] + dx, position[1] + dy)
+            if not environment.legal_destination(candidate) or candidate in environment.fires:
+                continue
+            next_key = int(has_key or candidate == environment.key_pos)
+            earns_reward = candidate in environment.apple_index or (
+                candidate == environment.chest_pos and bool(next_key)
+            )
+            if earns_reward:
+                return distance + 1
+            state = (candidate, next_key)
             if state not in seen:
                 seen.add(state)
                 frontier.append((state, distance + 1))

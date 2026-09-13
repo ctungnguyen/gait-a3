@@ -6,7 +6,7 @@
   "player_radius": 16.0,
   "player_health": 100.0,
   "player_max_speed": 260.0,
-  "player_direct_acceleration": 1000.0,
+  "player_direct_acceleration": 520.0,
   "player_thrust_acceleration": 520.0,
   "player_rotation_speed": 3.2,
   "player_drag_per_30hz_step": 0.91,

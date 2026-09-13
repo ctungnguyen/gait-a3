@@ -1,27 +1,27 @@
 {
   "algorithm": "PPO",
   "control_style": "direct",
-  "episode_csv": "reports\\direct_tune_stable_episodes.csv",
+  "episode_csv": "reports/direct_tune_stable_episodes.csv",
   "final_evaluation": {
     "episodes": 10,
     "highest_phase": 1,
-    "max_return": -40.653432700523965,
-    "mean_damage_dealt": 0.0,
+    "max_return": -33.93773145003846,
+    "mean_damage_dealt": 44.0,
     "mean_damage_taken": 100.0,
-    "mean_enemies_destroyed": 0.0,
-    "mean_episode_steps": 254.4,
+    "mean_enemies_destroyed": 2.2,
+    "mean_episode_steps": 269.3,
     "mean_max_phase": 1.0,
-    "mean_return": -40.68523270052397,
-    "mean_shots_fired": 5.0,
+    "mean_return": -35.77174810278783,
+    "mean_shots_fired": 38.9,
     "mean_spawners_destroyed": 0.0,
-    "min_return": -40.713432700523974,
-    "std_return": 0.01889338508579425,
+    "min_return": -38.263054860360924,
+    "std_return": 1.24918172199106,
     "success_rate": 0.0
   },
-  "metadata": "models\\tuning\\direct_tune_stable.metadata.json",
-  "model": "models\\tuning\\direct_tune_stable.zip",
-  "monitor_directory": "logs\\monitor\\direct\\tune_stable",
-  "periodic_evaluation_directory": "logs\\evaluations\\direct\\tune_stable",
+  "metadata": "models/tuning/direct_tune_stable.metadata.json",
+  "model": "models/tuning/direct_tune_stable.zip",
+  "monitor_directory": "logs/monitor/direct/tune_stable",
+  "periodic_evaluation_directory": "logs/evaluations/direct/tune_stable",
   "settings": {
     "activation": "tanh",
     "actual_timesteps": 53248,
@@ -51,6 +51,7 @@
     "preset": "stable",
     "promoted_to_canonical_path": false,
     "reward": {
+      "aim_progress": 0.035,
       "aligned_shot": 0.08,
       "aligned_shot_threshold": 0.92,
       "approach_progress": 0.015,
@@ -67,8 +68,8 @@
     },
     "run_name": "tune_stable",
     "seed": 4200,
-    "selected_checkpoint": "direct\\tune_stable_best\\best_model.zip",
+    "selected_checkpoint": "models/direct/tune_stable_best/best_model.zip",
     "total_timesteps": 50000
   },
-  "tensorboard_directory": "logs\\tensorboard\\direct"
+  "tensorboard_directory": "logs/tensorboard/direct"
 }

@@ -7,6 +7,7 @@
     "intrinsic_rule": "r_i = intrinsicRewardStrength / sqrt(n(s) + 1)",
     "level": 0,
     "level_name": "Apple Run",
+    "level_signature": "1102f0a2ea0b06c45aeff7eb2182619a200f21a9d8c7deb4e9a8b26f183c4c7b",
     "q_learning_rule": "Q(s,a) <- Q(s,a) + alpha[r + gamma max_a' Q(s',a') - Q(s,a)]",
     "sarsa_rule": "Q(s,a) <- Q(s,a) + alpha[r + gamma Q(s',a') - Q(s,a)]",
     "settings": {

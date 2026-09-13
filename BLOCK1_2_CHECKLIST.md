@@ -31,7 +31,7 @@
 
 ## Observation coverage required alongside the API by rubric H2
 
-- [x] Fixed-size numeric feature vector (`float32`, shape `(25,)`)
+- [x] Fixed-size numeric feature vector (`float32`, shape `(26,)`)
 - [x] Player position
 - [x] Player velocity
 - [x] Player orientation represented by sine and cosine
@@ -47,8 +47,8 @@
   contracts; they are not two versions of Blocks 1 and 2.
 - Both mappings and style-locked factories share exactly one Arena so the two
   agents can be compared fairly.
-- Separate trained-agent evaluation scripts are included. The actual trained
-  model files remain Block 6 outputs and must not be claimed until generated.
+- Separate trained-agent evaluation scripts and compatible trained model files
+  are included as Block 6 outputs; the API demo remains a random smoke test.
 - `run_api_demo.py` uses random actions only to smoke-test the API. It is not a
   learned agent and is not assessment evidence of learned behaviour.
 

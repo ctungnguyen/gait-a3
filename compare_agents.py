@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+from dataclasses import replace
 from pathlib import Path
 
 from part2.arena import ArenaConfig, ControlStyle
@@ -32,6 +33,11 @@ def main() -> None:
 
     arena_config = ArenaConfig.from_json(args.arena_config)
     settings = load_training_settings(args.training_config)
+    # Direct uses a small geometry-specific firing-lane potential during
+    # training.  Disable that one style-specific term here so reported returns
+    # use exactly the same evaluation reward for both control schemes.  The
+    # objective metrics (phase and destroyed entities) are always mechanical.
+    comparison_reward = replace(settings.reward, firing_lane_progress=0.0)
     model_paths = {
         ControlStyle.ROTATION: args.rotation_model,
         ControlStyle.DIRECT: args.direct_model,
@@ -48,7 +54,7 @@ def main() -> None:
             model,
             style=style,
             arena_config=arena_config,
-            reward_config=settings.reward,
+            reward_config=comparison_reward,
             episodes=args.episodes,
             seed=args.seed,
             deterministic=True,
@@ -70,7 +76,11 @@ def main() -> None:
             "algorithm": "PPO",
             "episodes_per_style": args.episodes,
             "shared_episode_seed_start": args.seed,
-            "fair_comparison": "Same Arena, reward, deterministic policy, and episode seeds",
+            "fair_comparison": (
+                "Same Arena, common evaluation reward (Direct training-only firing-lane "
+                "potential disabled), deterministic policy, and episode seeds"
+            ),
+            "evaluation_reward": comparison_reward.to_dict(),
             "results": summaries,
         },
     )

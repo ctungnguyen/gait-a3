@@ -34,11 +34,12 @@ OBSERVATION_LABELS = (
     "nearest_enemy_health",
     "nearest_enemy_present",
     "nearest_enemy_closing_speed",
-    # 3. Nearest Spawner Features (6)
+    # 3. Nearest Spawner Features (7)
     "nearest_spawner_unit_dir_x",
     "nearest_spawner_unit_dir_y",
     "nearest_spawner_distance",
     "nearest_spawner_aim_alignment", # cos(angle_to_spawner - ship_heading)
+    "nearest_spawner_aim_ortho",     # signed sin term: which way to turn
     "nearest_spawner_health",
     "nearest_spawner_present",
     # 4. Global State & Cooldowns (5)
@@ -48,7 +49,8 @@ OBSERVATION_LABELS = (
     "enemy_density",
     "spawner_density",
 )
-OBSERVATION_SIZE = len(OBSERVATION_LABELS)  # 25 features
+OBSERVATION_SIZE = len(OBSERVATION_LABELS)  # 26 features
+OBSERVATION_SCHEMA_VERSION = 2
 
 
 class ObservationFunction(Protocol):
@@ -60,7 +62,7 @@ class RewardFunction(Protocol):
 
 
 def build_baseline_observation(core: ArenaCore) -> np.ndarray:
-    """Compute an omni-directional, normalized 25-D observation vector."""
+    """Compute an omni-directional, normalized 26-D observation vector."""
     cfg = core.config
     player = core.player
     diagonal = math.hypot(cfg.width, cfg.height)
@@ -108,7 +110,7 @@ def build_baseline_observation(core: ArenaCore) -> np.ndarray:
         ))
 
     if spawner is None:
-        values.extend((0.0, 0.0, 1.0, -1.0, 0.0, 0.0))
+        values.extend((0.0, 0.0, 1.0, -1.0, 0.0, 0.0, 0.0))
     else:
         rel_s = spawner.pos - player.pos
         dist_s = length(rel_s)
@@ -116,15 +118,18 @@ def build_baseline_observation(core: ArenaCore) -> np.ndarray:
             unit_sx = float(rel_s[0] / dist_s)
             unit_sy = float(rel_s[1] / dist_s)
             aim_spawner = unit_sx * heading_cos + unit_sy * heading_sin
+            aim_spawner_ortho = unit_sx * heading_sin - unit_sy * heading_cos
         else:
             unit_sx, unit_sy = 0.0, 0.0
             aim_spawner = 1.0
+            aim_spawner_ortho = 0.0
 
         values.extend((
             float(np.clip(unit_sx, -1.0, 1.0)),
             float(np.clip(unit_sy, -1.0, 1.0)),
             float(np.clip(dist_s / diagonal, 0.0, 1.0)),
             float(np.clip(aim_spawner, -1.0, 1.0)),
+            float(np.clip(aim_spawner_ortho, -1.0, 1.0)),
             float(np.clip(spawner.health / spawner.max_health, 0.0, 1.0)),
             1.0,
         ))

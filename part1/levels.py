@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
 
 
 @dataclass(frozen=True)
@@ -105,10 +106,10 @@ LEVELS: dict[int, LevelDefinition] = {
             "      R   A ",
             "          C ",
             "      RRRR  ",
-            "        A   ",
+            " M      A   ",
             "   A        ",
         ],
-        "The stochastic threat is combined with apples, a key, a chest, and rocks.",
+        "Two independent stochastic monsters guard apples, a key, and a chest behind constrained rock routes.",
     ),
     6: _level(
         6, "Sparse Maze", "Task 5 - intrinsic reward",
@@ -135,3 +136,12 @@ def get_level(number: int) -> LevelDefinition:
         return LEVELS[number]
     except KeyError as exc:
         raise ValueError(f"Unknown level {number}; choose one of {sorted(LEVELS)}") from exc
+
+
+def level_signature(level: LevelDefinition) -> str:
+    """Stable fingerprint used to reject a Q-table trained on an older layout."""
+
+    payload = "\n".join(
+        (str(level.number), level.name, level.task, level.description, *level.layout)
+    )
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()

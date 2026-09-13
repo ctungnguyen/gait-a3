@@ -35,13 +35,45 @@ MAIN_ACTIONS = (
     ),
 )
 
-ARENA_ACTIONS = (
-    MenuAction("PLAY ROTATION + THRUST", "Manual Discrete(5) control contract", ("run_manual.py", "--style", "rotation")),
-    MenuAction("PLAY DIRECT MOVEMENT", "Manual Discrete(6) control contract", ("run_manual.py", "--style", "direct")),
-    MenuAction("WATCH PPO / ROTATION", "Evaluate the saved rotation_agent.zip", ("evaluate_rotation.py", "--episodes", "3")),
-    MenuAction("WATCH PPO / DIRECT", "Evaluate the saved direct_agent.zip", ("evaluate_direct.py", "--episodes", "3")),
+ARENA_STYLE_ACTIONS = (
+    MenuAction("ROTATION + THRUST", "Required Discrete(5): no-op, thrust, left, right, shoot", submenu="rotation"),
+    MenuAction("DIRECT DIRECTIONAL", "Required Discrete(6): no-op, up, down, left, right, shoot", submenu="direct"),
     MenuAction("BACK", "Return to the two-game selection", submenu="main"),
 )
+
+ARENA_MODE_ACTIONS = {
+    "rotation": (
+        MenuAction("MANUAL PLAY", "Control the Rotation + Thrust ship yourself", ("run_manual.py", "--style", "rotation")),
+        MenuAction("WATCH TRAINED PPO", "AI auto-play with live observation/reward debugger", ("evaluate_rotation.py", "--episodes", "3", "--seed", "12004", "--debug")),
+        MenuAction("BACK", "Choose another control style", submenu="arena"),
+    ),
+    "direct": (
+        MenuAction("MANUAL PLAY", "Control the Direct Directional ship yourself", ("run_manual.py", "--style", "direct")),
+        MenuAction("WATCH TRAINED PPO", "AI auto-play with live observation/reward debugger", ("evaluate_direct.py", "--episodes", "3", "--seed", "12004", "--debug")),
+        MenuAction("BACK", "Choose another control style", submenu="arena"),
+    ),
+}
+
+PAGE_TITLES = {
+    "main": "Two separate environments, one evidence-backed submission",
+    "arena": "PART II / CHOOSE THE REQUIRED CONTROL STYLE",
+    "rotation": "ROTATION + THRUST / CHOOSE HUMAN OR PPO",
+    "direct": "DIRECT DIRECTIONAL / CHOOSE HUMAN OR PPO",
+}
+
+PAGE_PARENTS = {
+    "arena": "main",
+    "rotation": "arena",
+    "direct": "arena",
+}
+
+
+def _page_actions(page: str) -> tuple[MenuAction, ...]:
+    if page == "main":
+        return MAIN_ACTIONS
+    if page == "arena":
+        return ARENA_STYLE_ACTIONS
+    return ARENA_MODE_ACTIONS[page]
 
 
 def _launch(command: tuple[str, ...], theme: str) -> None:
@@ -53,7 +85,7 @@ def _launch(command: tuple[str, ...], theme: str) -> None:
     )
 
 
-def _visual_menu(initial_theme: str) -> None:
+def _visual_menu(initial_theme: str, initial_page: str = "main") -> None:
     try:
         import pygame
     except ImportError as exc:
@@ -61,7 +93,9 @@ def _visual_menu(initial_theme: str) -> None:
 
     themes = list(theme_names())
     theme_index = themes.index(initial_theme)
-    page = "main"
+    if initial_page not in ("main", "arena", "rotation", "direct"):
+        raise ValueError(f"Unknown menu page: {initial_page}")
+    page = initial_page
     selected = 0
     running = True
 
@@ -79,7 +113,7 @@ def _visual_menu(initial_theme: str) -> None:
 
         while running and not relaunch:
             palette = get_theme(themes[theme_index])
-            actions = MAIN_ACTIONS if page == "main" else ARENA_ACTIONS
+            actions = _page_actions(page)
             screen.fill(palette.background)
 
             # Decorative horizon keeps the launcher visually related to both games.
@@ -90,11 +124,7 @@ def _visual_menu(initial_theme: str) -> None:
                 pygame.draw.line(screen, palette.grid, (x, 0), (x, 700), 1)
 
             screen.blit(title_font.render("GAIT A3 / RL ARCADE", True, palette.text), (54, 38))
-            subtitle = (
-                "Two separate environments, one evidence-backed submission"
-                if page == "main"
-                else "PART II / CHOOSE MANUAL OR TRAINED AGENT"
-            )
+            subtitle = PAGE_TITLES[page]
             screen.blit(font.render(subtitle, True, palette.primary), (57, 91))
 
             top = 150
@@ -116,7 +146,7 @@ def _visual_menu(initial_theme: str) -> None:
                     detail = (
                         "7 levels  |  4 cardinal actions  |  tabular policies"
                         if index == 0
-                        else "real-time physics  |  25 observations  |  PPO"
+                        else "real-time physics  |  26 observations  |  PPO"
                     )
                     screen.blit(small.render(detail, True, foreground), (rect.x + 30, rect.y + 108))
 
@@ -127,10 +157,8 @@ def _visual_menu(initial_theme: str) -> None:
             def activate(index: int) -> None:
                 nonlocal page, selected, relaunch, running
                 action = actions[index]
-                if action.submenu == "arena":
-                    page, selected = "arena", 0
-                elif action.submenu == "main":
-                    page, selected = "main", 0
+                if action.submenu is not None:
+                    page, selected = action.submenu, 0
                 elif action.command:
                     pygame.quit()
                     _launch(action.command, themes[theme_index])
@@ -141,8 +169,8 @@ def _visual_menu(initial_theme: str) -> None:
                     running = False
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
-                        if page == "arena":
-                            page, selected = "main", 0
+                        if page in PAGE_PARENTS:
+                            page, selected = PAGE_PARENTS[page], 0
                         else:
                             running = False
                     elif event.key in (pygame.K_DOWN, pygame.K_s):
@@ -170,7 +198,10 @@ def _visual_menu(initial_theme: str) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--theme", choices=theme_names(), default="neon")
-    parser.add_argument("--part", choices=("1", "2-rotation", "2-direct"))
+    parser.add_argument(
+        "--part",
+        choices=("1", "2-rotation", "2-direct", "2-rotation-ai", "2-direct-ai"),
+    )
     args = parser.parse_args()
     if args.part == "1":
         _launch(("part1.py",), args.theme)
@@ -178,6 +209,10 @@ def main() -> None:
         _launch(("run_manual.py", "--style", "rotation"), args.theme)
     elif args.part == "2-direct":
         _launch(("run_manual.py", "--style", "direct"), args.theme)
+    elif args.part == "2-rotation-ai":
+        _launch(("evaluate_rotation.py", "--episodes", "3", "--seed", "12004", "--debug"), args.theme)
+    elif args.part == "2-direct-ai":
+        _launch(("evaluate_direct.py", "--episodes", "3", "--seed", "12004", "--debug"), args.theme)
     else:
         _visual_menu(args.theme)
 

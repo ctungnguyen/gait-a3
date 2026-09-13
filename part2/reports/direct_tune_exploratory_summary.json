@@ -1,27 +1,27 @@
 {
   "algorithm": "PPO",
   "control_style": "direct",
-  "episode_csv": "reports\\direct_tune_exploratory_episodes.csv",
+  "episode_csv": "reports/direct_tune_exploratory_episodes.csv",
   "final_evaluation": {
     "episodes": 10,
     "highest_phase": 1,
-    "max_return": -40.59343270052397,
-    "mean_damage_dealt": 0.0,
+    "max_return": -40.35475751861874,
+    "mean_damage_dealt": 1.0,
     "mean_damage_taken": 100.0,
     "mean_enemies_destroyed": 0.0,
-    "mean_episode_steps": 289.1,
+    "mean_episode_steps": 203.7,
     "mean_max_phase": 1.0,
-    "mean_return": -40.98777574932393,
-    "mean_shots_fired": 9.7,
+    "mean_return": -40.66531084131544,
+    "mean_shots_fired": 4.5,
     "mean_spawners_destroyed": 0.0,
-    "min_return": -41.4060239351713,
-    "std_return": 0.31522843770044656,
+    "min_return": -40.749888806670356,
+    "std_return": 0.11216657293820018,
     "success_rate": 0.0
   },
-  "metadata": "models\\tuning\\direct_tune_exploratory.metadata.json",
-  "model": "models\\tuning\\direct_tune_exploratory.zip",
-  "monitor_directory": "logs\\monitor\\direct\\tune_exploratory",
-  "periodic_evaluation_directory": "logs\\evaluations\\direct\\tune_exploratory",
+  "metadata": "models/tuning/direct_tune_exploratory.metadata.json",
+  "model": "models/tuning/direct_tune_exploratory.zip",
+  "monitor_directory": "logs/monitor/direct/tune_exploratory",
+  "periodic_evaluation_directory": "logs/evaluations/direct/tune_exploratory",
   "settings": {
     "activation": "tanh",
     "actual_timesteps": 53248,
@@ -51,6 +51,7 @@
     "preset": "exploratory",
     "promoted_to_canonical_path": false,
     "reward": {
+      "aim_progress": 0.035,
       "aligned_shot": 0.08,
       "aligned_shot_threshold": 0.92,
       "approach_progress": 0.015,
@@ -67,8 +68,8 @@
     },
     "run_name": "tune_exploratory",
     "seed": 4200,
-    "selected_checkpoint": "direct\\tune_exploratory_best\\best_model.zip",
+    "selected_checkpoint": "models/direct/tune_exploratory_best/best_model.zip",
     "total_timesteps": 50000
   },
-  "tensorboard_directory": "logs\\tensorboard\\direct"
+  "tensorboard_directory": "logs/tensorboard/direct"
 }

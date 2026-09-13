@@ -44,8 +44,8 @@ class ProgressionRewardTests(unittest.TestCase):
         )
         result = reward(core, outcome)
 
-        self.assertAlmostEqual(reward.last_components["enemy_damage"], 0.2)
-        self.assertAlmostEqual(reward.last_components["spawner_damage"], 0.5)
+        self.assertAlmostEqual(reward.last_components["enemy_damage"], 0.05)
+        self.assertAlmostEqual(reward.last_components["spawner_damage"], 0.8)
         self.assertAlmostEqual(reward.last_components["player_damage"], -1.5)
         self.assertAlmostEqual(result, sum(reward.last_components.values()))
 
@@ -98,6 +98,69 @@ class ProgressionRewardTests(unittest.TestCase):
             wasted_reward.last_components["shot_quality"],
         )
 
+    def test_turning_toward_spawner_gets_immediate_aim_progress(self):
+        core = ArenaCore(seed=3)
+        target = core.nearest_spawner()
+        target_angle = math.atan2(
+            float(target.pos[1] - core.player.pos[1]),
+            float(target.pos[0] - core.player.pos[0]),
+        )
+        core.player.angle = target_angle + 0.50
+        reward = ProgressionReward()
+        reward.reset(core)
+
+        core.player.angle = target_angle + 0.35
+        reward(core, StepOutcome([], False, False))
+
+        self.assertGreater(reward.last_components["aim_progress"], 0.0)
+
+    def test_direct_movement_toward_cardinal_firing_lane_is_rewarded(self):
+        core = ArenaCore(seed=3)
+        reward = ProgressionReward(control_style=ControlStyle.DIRECT)
+        reward.reset(core)
+        core.player.pos[1] -= 5.0
+
+        reward(core, StepOutcome([], False, False))
+
+        self.assertGreater(reward.last_components["firing_lane"], 0.0)
+
+    def test_rotation_reward_does_not_add_cardinal_lane_shaping(self):
+        core = ArenaCore(seed=3)
+        reward = ProgressionReward(control_style=ControlStyle.ROTATION)
+        reward.reset(core)
+        core.player.pos[1] -= 5.0
+
+        reward(core, StepOutcome([], False, False))
+
+        self.assertNotIn("firing_lane", reward.last_components)
+
+    def test_shot_quality_requires_a_real_projectile_firing_lane(self):
+        core = ArenaCore(seed=2)
+        # The nearest spawner is generally within the old cosine threshold when
+        # facing left, but it is far enough off-row that a real projectile misses.
+        core.player.angle = math.pi
+        reward = ProgressionReward(control_style=ControlStyle.DIRECT)
+        reward.reset(core)
+
+        reward(core, StepOutcome([ArenaEvent("projectile_fired")], False, False))
+
+        self.assertEqual(
+            reward.last_components["shot_quality"],
+            reward.config.wasted_shot,
+        )
+
+    def test_switching_spawner_resets_shaping_baselines(self):
+        core = ArenaCore(seed=5)
+        reward = ProgressionReward()
+        reward.reset(core)
+        removed = core.nearest_spawner()
+        core.spawners = [item for item in core.spawners if item.entity_id != removed.entity_id]
+
+        reward(core, StepOutcome([], False, False))
+
+        self.assertNotIn("approach", reward.last_components)
+        self.assertNotIn("aim_progress", reward.last_components)
+
     def test_reward_adapter_does_not_mutate_game_mechanics(self):
         core = ArenaCore(seed=7)
         reward = ProgressionReward()
@@ -145,6 +208,21 @@ class TrainingConfigurationTests(unittest.TestCase):
         self.assertEqual(settings.n_envs, 4)
         rollout_size = settings.ppo["n_steps"] * settings.n_envs
         self.assertEqual(rollout_size % settings.ppo["batch_size"], 0)
+
+    def test_rotation_focus_preset_extends_training_and_exploration(self):
+        baseline = load_training_settings(self.config_path, "baseline")
+        focused = load_training_settings(self.config_path, "rotation_focus")
+        self.assertGreater(focused.total_timesteps, baseline.total_timesteps)
+        self.assertGreater(focused.ppo["ent_coef"], baseline.ppo["ent_coef"])
+        self.assertGreater(focused.net_arch[0], baseline.net_arch[0])
+
+    def test_direct_focus_uses_the_validated_long_training_budget(self):
+        baseline = load_training_settings(self.config_path, "baseline")
+        focused = load_training_settings(self.config_path, "direct_focus")
+        self.assertGreater(focused.total_timesteps, baseline.total_timesteps)
+        self.assertGreater(focused.net_arch[0], baseline.net_arch[0])
+        self.assertGreater(focused.ppo["ent_coef"], baseline.ppo["ent_coef"])
+        self.assertGreater(focused.ppo["gamma"], baseline.ppo["gamma"])
 
     def test_named_presets_make_meaningful_changes(self):
         baseline = load_training_settings(self.config_path, "baseline")

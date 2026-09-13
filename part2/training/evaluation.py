@@ -10,7 +10,11 @@ import warnings
 import numpy as np
 
 from ..arena import ArenaConfig, ControlStyle, action_names, make_direct_env, make_rotation_env
-from ..arena.adapters import OBSERVATION_SIZE
+from ..arena.adapters import (
+    OBSERVATION_LABELS,
+    OBSERVATION_SCHEMA_VERSION,
+    OBSERVATION_SIZE,
+)
 from ..arena.rewards import RewardConfig, ProgressionReward
 from .artifacts import load_metadata_for_model, sha256_file
 
@@ -51,6 +55,16 @@ def validate_model_contract(
             f"Wrong model for {style.value}: model uses Discrete({actual_count}), "
             f"but this style requires Discrete({expected_count})."
         )
+    actual_observation_shape = getattr(
+        getattr(model, "observation_space", None),
+        "shape",
+        None,
+    )
+    if actual_observation_shape not in (None, (OBSERVATION_SIZE,)):
+        raise ValueError(
+            f"Wrong observation contract: model uses {actual_observation_shape}, "
+            f"but this environment requires ({OBSERVATION_SIZE},)."
+        )
 
     metadata = load_metadata_for_model(model_path)
     if metadata is None:
@@ -73,6 +87,12 @@ def validate_model_contract(
         mismatches.append("action_meanings differ")
     if metadata.get("observation_size") != OBSERVATION_SIZE:
         mismatches.append(f"observation_size={metadata.get('observation_size')!r}")
+    if metadata.get("observation_labels") not in (None, list(OBSERVATION_LABELS)):
+        mismatches.append("observation_labels differ")
+    # v1 used the same sidecar structure before explicit schema versioning;
+    # exact labels below/above still prevent silent feature-order mismatch.
+    if metadata.get("schema_version") not in (None, 1, OBSERVATION_SCHEMA_VERSION):
+        mismatches.append(f"schema_version={metadata.get('schema_version')!r}")
     recorded_hash = metadata.get("model_sha256")
     model_file = Path(model_path)
     if recorded_hash and model_file.exists() and recorded_hash != sha256_file(model_file):
@@ -98,7 +118,7 @@ def evaluate_model(
     factory = make_rotation_env if style is ControlStyle.ROTATION else make_direct_env
     env = factory(
         config=arena_config,
-        reward_fn=ProgressionReward(reward_config),
+        reward_fn=ProgressionReward(reward_config, control_style=style),
         render_mode=None,
         seed=seed,
     )

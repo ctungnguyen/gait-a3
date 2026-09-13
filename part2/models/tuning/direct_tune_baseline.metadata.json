@@ -47,31 +47,31 @@
     "width": 960
   },
   "control_style": "direct",
-  "created_utc": "2026-09-12T01:12:39.983902+00:00",
+  "created_utc": "2026-09-13T11:06:01.224259+00:00",
   "dependency_versions": {
-    "gymnasium": "1.3.0",
-    "numpy": "2.5.3",
-    "stable_baselines3": "2.9.0",
-    "torch": "2.14.0+cpu"
+    "gymnasium": "1.2.2",
+    "numpy": "2.3.5",
+    "stable_baselines3": "2.7.1",
+    "torch": "2.14.0+cu130"
   },
   "final_evaluation": {
     "episodes": 10,
     "highest_phase": 1,
-    "max_return": -40.583432700523986,
+    "max_return": -40.86365178371022,
     "mean_damage_dealt": 0.0,
     "mean_damage_taken": 100.0,
     "mean_enemies_destroyed": 0.0,
     "mean_episode_steps": 254.4,
     "mean_max_phase": 1.0,
-    "mean_return": -40.61023270052398,
+    "mean_return": -40.89045178371022,
     "mean_shots_fired": 0.0,
     "mean_spawners_destroyed": 0.0,
-    "min_return": -40.63343270052398,
-    "std_return": 0.01499866660740264,
+    "min_return": -40.913651783710215,
+    "std_return": 0.014998666607403415,
     "success_rate": 0.0
   },
   "model_file": "direct_tune_baseline.zip",
-  "model_sha256": "a06859424b3ad4533a55f4b3335cda2de2cd53457ac8ab68c14fd662cecf1273",
+  "model_sha256": "7f4e8db8657e5d3d90089509fac44c27f218c166e53c63848ae1180593cbc42a",
   "observation_labels": [
     "player_x",
     "player_y",
@@ -91,6 +91,7 @@
     "nearest_spawner_unit_dir_y",
     "nearest_spawner_distance",
     "nearest_spawner_aim_alignment",
+    "nearest_spawner_aim_ortho",
     "nearest_spawner_health",
     "nearest_spawner_present",
     "player_health",
@@ -99,10 +100,10 @@
     "enemy_density",
     "spawner_density"
   ],
-  "observation_size": 25,
-  "platform": "Windows-11-10.0.26200-SP0",
-  "python_version": "3.12.10",
-  "schema_version": 1,
+  "observation_size": 26,
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "python_version": "3.12.14",
+  "schema_version": 2,
   "training": {
     "activation": "tanh",
     "actual_timesteps": 53248,
@@ -132,6 +133,7 @@
     "preset": "baseline",
     "promoted_to_canonical_path": false,
     "reward": {
+      "aim_progress": 0.035,
       "aligned_shot": 0.08,
       "aligned_shot_threshold": 0.92,
       "approach_progress": 0.015,
@@ -148,7 +150,7 @@
     },
     "run_name": "tune_baseline",
     "seed": 4200,
-    "selected_checkpoint": "direct\\tune_baseline_best\\best_model.zip",
+    "selected_checkpoint": "models/direct/tune_baseline_best/best_model.zip",
     "total_timesteps": 50000
   }
 }

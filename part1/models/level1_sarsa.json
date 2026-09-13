@@ -7,6 +7,7 @@
     "intrinsic_rule": "r_i = intrinsicRewardStrength / sqrt(n(s) + 1)",
     "level": 1,
     "level_name": "Hazard Choice",
+    "level_signature": "58e712673ef8b044bef44794d82e1061f23ff5ed0f24b764cfb07736aa45ec28",
     "q_learning_rule": "Q(s,a) <- Q(s,a) + alpha[r + gamma max_a' Q(s',a') - Q(s,a)]",
     "sarsa_rule": "Q(s,a) <- Q(s,a) + alpha[r + gamma Q(s',a') - Q(s,a)]",
     "settings": {

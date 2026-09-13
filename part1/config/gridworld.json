@@ -20,7 +20,7 @@
     "2": {"episodes": 8000, "epsilonDecayEpisodes": 5500},
     "3": {"episodes": 12000, "epsilonDecayEpisodes": 8500},
     "4": {"episodes": 18000, "alpha": 0.2, "epsilonDecayEpisodes": 13000},
-    "5": {"episodes": 24000, "alpha": 0.2, "epsilonDecayEpisodes": 18000},
+    "5": {"episodes": 40000, "alpha": 0.2, "epsilonDecayEpisodes": 18000},
     "6": {"episodes": 14000, "alpha": 0.2, "epsilonDecayEpisodes": 10000, "maxStepsPerEpisode": 500}
   }
 }

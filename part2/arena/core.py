@@ -157,15 +157,19 @@ class ArenaCore:
                     * min(1.0, float(command.thrust))
                     * dt
                 )
-            drag = cfg.player_drag_per_30hz_step ** (dt / max(cfg.fixed_dt, EPSILON))
-            player.vel *= drag
+            else:
+                drag = cfg.player_drag_per_30hz_step ** (dt / max(cfg.fixed_dt, EPSILON))
+                player.vel *= drag
         else:
             direction = normalized(command.move)
-            desired_velocity = direction * cfg.player_max_speed
-            maximum_change = cfg.player_direct_acceleration * dt
-            player.vel += limited(desired_velocity - player.vel, maximum_change)
             if length(direction) > EPSILON:
+                desired_velocity = direction * cfg.player_max_speed
+                maximum_change = cfg.player_direct_acceleration * dt
+                player.vel += limited(desired_velocity - player.vel, maximum_change)
                 player.angle = math.atan2(float(direction[1]), float(direction[0]))
+            else:
+                drag = cfg.player_drag_per_30hz_step ** (dt / max(cfg.fixed_dt, EPSILON))
+                player.vel *= drag
 
         player.vel = limited(player.vel, cfg.player_max_speed)
         player.pos += player.vel * dt

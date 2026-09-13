@@ -4,12 +4,12 @@
   "algorithm": "sarsa",
   "intrinsic_enabled": false,
   "episodes": 30,
-  "mean_environment_return": 5.0,
-  "return_std": 0.0,
-  "success_rate": 1,
-  "death_rate": 0,
-  "truncation_rate": 0,
-  "mean_steps": 21.333333333333332,
-  "mean_success_steps": 21.333333333333332,
-  "mean_monster_moves": 8.833333333333334
+  "mean_environment_return": 3.3,
+  "return_std": 2.208317610006918,
+  "success_rate": 0.6,
+  "death_rate": 0.36666666666666664,
+  "truncation_rate": 0.03333333333333333,
+  "mean_steps": 53.03333333333333,
+  "mean_success_steps": 46.05555555555556,
+  "mean_monster_moves": 42
 }

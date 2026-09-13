@@ -2,36 +2,36 @@
   "results": {
     "direct": {
       "ranking": [
-        "baseline",
         "stable",
-        "exploratory"
+        "exploratory",
+        "baseline"
       ],
-      "recommended_preset": "baseline",
+      "recommended_preset": "stable",
       "trials": {
         "baseline": {
           "algorithm": "PPO",
           "control_style": "direct",
-          "episode_csv": "reports\\direct_tune_baseline_episodes.csv",
+          "episode_csv": "reports/direct_tune_baseline_episodes.csv",
           "final_evaluation": {
             "episodes": 10,
             "highest_phase": 1,
-            "max_return": -40.583432700523986,
+            "max_return": -40.86365178371022,
             "mean_damage_dealt": 0.0,
             "mean_damage_taken": 100.0,
             "mean_enemies_destroyed": 0.0,
             "mean_episode_steps": 254.4,
             "mean_max_phase": 1.0,
-            "mean_return": -40.61023270052398,
+            "mean_return": -40.89045178371022,
             "mean_shots_fired": 0.0,
             "mean_spawners_destroyed": 0.0,
-            "min_return": -40.63343270052398,
-            "std_return": 0.01499866660740264,
+            "min_return": -40.913651783710215,
+            "std_return": 0.014998666607403415,
             "success_rate": 0.0
           },
-          "metadata": "models\\tuning\\direct_tune_baseline.metadata.json",
-          "model": "models\\tuning\\direct_tune_baseline.zip",
-          "monitor_directory": "logs\\monitor\\direct\\tune_baseline",
-          "periodic_evaluation_directory": "logs\\evaluations\\direct\\tune_baseline",
+          "metadata": "models/tuning/direct_tune_baseline.metadata.json",
+          "model": "models/tuning/direct_tune_baseline.zip",
+          "monitor_directory": "logs/monitor/direct/tune_baseline",
+          "periodic_evaluation_directory": "logs/evaluations/direct/tune_baseline",
           "settings": {
             "activation": "tanh",
             "actual_timesteps": 53248,
@@ -61,6 +61,7 @@
             "preset": "baseline",
             "promoted_to_canonical_path": false,
             "reward": {
+              "aim_progress": 0.035,
               "aligned_shot": 0.08,
               "aligned_shot_threshold": 0.92,
               "approach_progress": 0.015,
@@ -77,35 +78,35 @@
             },
             "run_name": "tune_baseline",
             "seed": 4200,
-            "selected_checkpoint": "direct\\tune_baseline_best\\best_model.zip",
+            "selected_checkpoint": "models/direct/tune_baseline_best/best_model.zip",
             "total_timesteps": 50000
           },
-          "tensorboard_directory": "logs\\tensorboard\\direct"
+          "tensorboard_directory": "logs/tensorboard/direct"
         },
         "exploratory": {
           "algorithm": "PPO",
           "control_style": "direct",
-          "episode_csv": "reports\\direct_tune_exploratory_episodes.csv",
+          "episode_csv": "reports/direct_tune_exploratory_episodes.csv",
           "final_evaluation": {
             "episodes": 10,
             "highest_phase": 1,
-            "max_return": -40.59343270052397,
-            "mean_damage_dealt": 0.0,
+            "max_return": -40.35475751861874,
+            "mean_damage_dealt": 1.0,
             "mean_damage_taken": 100.0,
             "mean_enemies_destroyed": 0.0,
-            "mean_episode_steps": 289.1,
+            "mean_episode_steps": 203.7,
             "mean_max_phase": 1.0,
-            "mean_return": -40.98777574932393,
-            "mean_shots_fired": 9.7,
+            "mean_return": -40.66531084131544,
+            "mean_shots_fired": 4.5,
             "mean_spawners_destroyed": 0.0,
-            "min_return": -41.4060239351713,
-            "std_return": 0.31522843770044656,
+            "min_return": -40.749888806670356,
+            "std_return": 0.11216657293820018,
             "success_rate": 0.0
           },
-          "metadata": "models\\tuning\\direct_tune_exploratory.metadata.json",
-          "model": "models\\tuning\\direct_tune_exploratory.zip",
-          "monitor_directory": "logs\\monitor\\direct\\tune_exploratory",
-          "periodic_evaluation_directory": "logs\\evaluations\\direct\\tune_exploratory",
+          "metadata": "models/tuning/direct_tune_exploratory.metadata.json",
+          "model": "models/tuning/direct_tune_exploratory.zip",
+          "monitor_directory": "logs/monitor/direct/tune_exploratory",
+          "periodic_evaluation_directory": "logs/evaluations/direct/tune_exploratory",
           "settings": {
             "activation": "tanh",
             "actual_timesteps": 53248,
@@ -135,6 +136,7 @@
             "preset": "exploratory",
             "promoted_to_canonical_path": false,
             "reward": {
+              "aim_progress": 0.035,
               "aligned_shot": 0.08,
               "aligned_shot_threshold": 0.92,
               "approach_progress": 0.015,
@@ -151,35 +153,35 @@
             },
             "run_name": "tune_exploratory",
             "seed": 4200,
-            "selected_checkpoint": "direct\\tune_exploratory_best\\best_model.zip",
+            "selected_checkpoint": "models/direct/tune_exploratory_best/best_model.zip",
             "total_timesteps": 50000
           },
-          "tensorboard_directory": "logs\\tensorboard\\direct"
+          "tensorboard_directory": "logs/tensorboard/direct"
         },
         "stable": {
           "algorithm": "PPO",
           "control_style": "direct",
-          "episode_csv": "reports\\direct_tune_stable_episodes.csv",
+          "episode_csv": "reports/direct_tune_stable_episodes.csv",
           "final_evaluation": {
             "episodes": 10,
             "highest_phase": 1,
-            "max_return": -40.653432700523965,
-            "mean_damage_dealt": 0.0,
+            "max_return": -33.93773145003846,
+            "mean_damage_dealt": 44.0,
             "mean_damage_taken": 100.0,
-            "mean_enemies_destroyed": 0.0,
-            "mean_episode_steps": 254.4,
+            "mean_enemies_destroyed": 2.2,
+            "mean_episode_steps": 269.3,
             "mean_max_phase": 1.0,
-            "mean_return": -40.68523270052397,
-            "mean_shots_fired": 5.0,
+            "mean_return": -35.77174810278783,
+            "mean_shots_fired": 38.9,
             "mean_spawners_destroyed": 0.0,
-            "min_return": -40.713432700523974,
-            "std_return": 0.01889338508579425,
+            "min_return": -38.263054860360924,
+            "std_return": 1.24918172199106,
             "success_rate": 0.0
           },
-          "metadata": "models\\tuning\\direct_tune_stable.metadata.json",
-          "model": "models\\tuning\\direct_tune_stable.zip",
-          "monitor_directory": "logs\\monitor\\direct\\tune_stable",
-          "periodic_evaluation_directory": "logs\\evaluations\\direct\\tune_stable",
+          "metadata": "models/tuning/direct_tune_stable.metadata.json",
+          "model": "models/tuning/direct_tune_stable.zip",
+          "monitor_directory": "logs/monitor/direct/tune_stable",
+          "periodic_evaluation_directory": "logs/evaluations/direct/tune_stable",
           "settings": {
             "activation": "tanh",
             "actual_timesteps": 53248,
@@ -209,6 +211,7 @@
             "preset": "stable",
             "promoted_to_canonical_path": false,
             "reward": {
+              "aim_progress": 0.035,
               "aligned_shot": 0.08,
               "aligned_shot_threshold": 0.92,
               "approach_progress": 0.015,
@@ -225,45 +228,45 @@
             },
             "run_name": "tune_stable",
             "seed": 4200,
-            "selected_checkpoint": "direct\\tune_stable_best\\best_model.zip",
+            "selected_checkpoint": "models/direct/tune_stable_best/best_model.zip",
             "total_timesteps": 50000
           },
-          "tensorboard_directory": "logs\\tensorboard\\direct"
+          "tensorboard_directory": "logs/tensorboard/direct"
         }
       }
     },
     "rotation": {
       "ranking": [
+        "stable",
         "baseline",
-        "exploratory",
-        "stable"
+        "exploratory"
       ],
-      "recommended_preset": "baseline",
+      "recommended_preset": "stable",
       "trials": {
         "baseline": {
           "algorithm": "PPO",
           "control_style": "rotation",
-          "episode_csv": "reports\\rotation_tune_baseline_episodes.csv",
+          "episode_csv": "reports/rotation_tune_baseline_episodes.csv",
           "final_evaluation": {
             "episodes": 10,
             "highest_phase": 1,
-            "max_return": -27.136173061847767,
-            "mean_damage_dealt": 70.0,
+            "max_return": -32.17431546456738,
+            "mean_damage_dealt": 47.0,
             "mean_damage_taken": 100.0,
-            "mean_enemies_destroyed": 1.0,
-            "mean_episode_steps": 316.2,
+            "mean_enemies_destroyed": 2.3,
+            "mean_episode_steps": 261.8,
             "mean_max_phase": 1.0,
-            "mean_return": -27.72005995988487,
-            "mean_shots_fired": 10.7,
-            "mean_spawners_destroyed": 1.0,
-            "min_return": -28.73358570993872,
-            "std_return": 0.517720131088548,
+            "mean_return": -34.1657104906313,
+            "mean_shots_fired": 36.0,
+            "mean_spawners_destroyed": 0.0,
+            "min_return": -37.31621149785443,
+            "std_return": 1.7898279571014515,
             "success_rate": 0.0
           },
-          "metadata": "models\\tuning\\rotation_tune_baseline.metadata.json",
-          "model": "models\\tuning\\rotation_tune_baseline.zip",
-          "monitor_directory": "logs\\monitor\\rotation\\tune_baseline",
-          "periodic_evaluation_directory": "logs\\evaluations\\rotation\\tune_baseline",
+          "metadata": "models/tuning/rotation_tune_baseline.metadata.json",
+          "model": "models/tuning/rotation_tune_baseline.zip",
+          "monitor_directory": "logs/monitor/rotation/tune_baseline",
+          "periodic_evaluation_directory": "logs/evaluations/rotation/tune_baseline",
           "settings": {
             "activation": "tanh",
             "actual_timesteps": 53248,
@@ -293,6 +296,7 @@
             "preset": "baseline",
             "promoted_to_canonical_path": false,
             "reward": {
+              "aim_progress": 0.035,
               "aligned_shot": 0.08,
               "aligned_shot_threshold": 0.92,
               "approach_progress": 0.015,
@@ -309,35 +313,35 @@
             },
             "run_name": "tune_baseline",
             "seed": 4200,
-            "selected_checkpoint": "rotation\\tune_baseline_best\\best_model.zip",
+            "selected_checkpoint": "models/rotation/tune_baseline_best/best_model.zip",
             "total_timesteps": 50000
           },
-          "tensorboard_directory": "logs\\tensorboard\\rotation"
+          "tensorboard_directory": "logs/tensorboard/rotation"
         },
         "exploratory": {
           "algorithm": "PPO",
           "control_style": "rotation",
-          "episode_csv": "reports\\rotation_tune_exploratory_episodes.csv",
+          "episode_csv": "reports/rotation_tune_exploratory_episodes.csv",
           "final_evaluation": {
             "episodes": 10,
             "highest_phase": 1,
-            "max_return": -27.177689571857528,
-            "mean_damage_dealt": 66.0,
+            "max_return": -33.48273301417006,
+            "mean_damage_dealt": 45.0,
             "mean_damage_taken": 100.0,
-            "mean_enemies_destroyed": 1.2,
-            "mean_episode_steps": 272.3,
+            "mean_enemies_destroyed": 2.1,
+            "mean_episode_steps": 256.6,
             "mean_max_phase": 1.0,
-            "mean_return": -28.966000566816387,
-            "mean_shots_fired": 10.5,
-            "mean_spawners_destroyed": 0.8,
-            "min_return": -35.81055162334438,
-            "std_return": 3.4065466479816666,
+            "mean_return": -35.35220141944734,
+            "mean_shots_fired": 13.2,
+            "mean_spawners_destroyed": 0.0,
+            "min_return": -36.06597764879835,
+            "std_return": 0.6828917931407522,
             "success_rate": 0.0
           },
-          "metadata": "models\\tuning\\rotation_tune_exploratory.metadata.json",
-          "model": "models\\tuning\\rotation_tune_exploratory.zip",
-          "monitor_directory": "logs\\monitor\\rotation\\tune_exploratory",
-          "periodic_evaluation_directory": "logs\\evaluations\\rotation\\tune_exploratory",
+          "metadata": "models/tuning/rotation_tune_exploratory.metadata.json",
+          "model": "models/tuning/rotation_tune_exploratory.zip",
+          "monitor_directory": "logs/monitor/rotation/tune_exploratory",
+          "periodic_evaluation_directory": "logs/evaluations/rotation/tune_exploratory",
           "settings": {
             "activation": "tanh",
             "actual_timesteps": 53248,
@@ -367,6 +371,7 @@
             "preset": "exploratory",
             "promoted_to_canonical_path": false,
             "reward": {
+              "aim_progress": 0.035,
               "aligned_shot": 0.08,
               "aligned_shot_threshold": 0.92,
               "approach_progress": 0.015,
@@ -383,35 +388,35 @@
             },
             "run_name": "tune_exploratory",
             "seed": 4200,
-            "selected_checkpoint": "rotation\\tune_exploratory_best\\best_model.zip",
+            "selected_checkpoint": "models/rotation/tune_exploratory_best/best_model.zip",
             "total_timesteps": 50000
           },
-          "tensorboard_directory": "logs\\tensorboard\\rotation"
+          "tensorboard_directory": "logs/tensorboard/rotation"
         },
         "stable": {
           "algorithm": "PPO",
           "control_style": "rotation",
-          "episode_csv": "reports\\rotation_tune_stable_episodes.csv",
+          "episode_csv": "reports/rotation_tune_stable_episodes.csv",
           "final_evaluation": {
             "episodes": 10,
             "highest_phase": 1,
-            "max_return": -40.839,
-            "mean_damage_dealt": 0.0,
+            "max_return": -22.414248768452566,
+            "mean_damage_dealt": 81.0,
             "mean_damage_taken": 100.0,
-            "mean_enemies_destroyed": 0.0,
-            "mean_episode_steps": 212.1,
+            "mean_enemies_destroyed": 3.3,
+            "mean_episode_steps": 278.4,
             "mean_max_phase": 1.0,
-            "mean_return": -40.88320000000001,
-            "mean_shots_fired": 30.6,
-            "mean_spawners_destroyed": 0.0,
-            "min_return": -40.92800000000001,
-            "std_return": 0.02804924241401459,
+            "mean_return": -28.450882299686953,
+            "mean_shots_fired": 38.1,
+            "mean_spawners_destroyed": 0.3,
+            "min_return": -31.80234503921491,
+            "std_return": 3.141392493771267,
             "success_rate": 0.0
           },
-          "metadata": "models\\tuning\\rotation_tune_stable.metadata.json",
-          "model": "models\\tuning\\rotation_tune_stable.zip",
-          "monitor_directory": "logs\\monitor\\rotation\\tune_stable",
-          "periodic_evaluation_directory": "logs\\evaluations\\rotation\\tune_stable",
+          "metadata": "models/tuning/rotation_tune_stable.metadata.json",
+          "model": "models/tuning/rotation_tune_stable.zip",
+          "monitor_directory": "logs/monitor/rotation/tune_stable",
+          "periodic_evaluation_directory": "logs/evaluations/rotation/tune_stable",
           "settings": {
             "activation": "tanh",
             "actual_timesteps": 53248,
@@ -441,6 +446,7 @@
             "preset": "stable",
             "promoted_to_canonical_path": false,
             "reward": {
+              "aim_progress": 0.035,
               "aligned_shot": 0.08,
               "aligned_shot_threshold": 0.92,
               "approach_progress": 0.015,
@@ -457,19 +463,19 @@
             },
             "run_name": "tune_stable",
             "seed": 4200,
-            "selected_checkpoint": "rotation\\tune_stable_best\\best_model.zip",
+            "selected_checkpoint": "models/rotation/tune_stable_best/best_model.zip",
             "total_timesteps": 50000
           },
-          "tensorboard_directory": "logs\\tensorboard\\rotation"
+          "tensorboard_directory": "logs/tensorboard/rotation"
         }
       }
     }
   },
   "selection_rule": "Highest mean return, then success rate, then mean max phase",
   "shared_fair_comparison_ranking": [
+    "stable",
     "baseline",
-    "exploratory",
-    "stable"
+    "exploratory"
   ],
-  "shared_recommended_preset": "baseline"
+  "shared_recommended_preset": "stable"
 }

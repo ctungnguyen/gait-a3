@@ -43,10 +43,27 @@ class QTable:
     def save(self, path: str | Path, metadata: dict | None = None) -> Path:
         output = Path(path)
         output.parent.mkdir(parents=True, exist_ok=True)
+        # Accessing an unseen defaultdict state creates an all-zero row. Such
+        # rows carry no learned information: after loading, the defaultdict
+        # recreates exactly the same values and random tie behaviour. Pruning
+        # them keeps two-monster Level 5 models small enough for submission.
+        learned_states = {
+            repr(state): values
+            for state, values in self.q.items()
+            if any(value != 0.0 for value in values)
+        }
+        saved_metadata = dict(metadata or {})
+        saved_metadata.update(
+            {
+                "visited_state_count": len(self.q),
+                "stored_learned_state_count": len(learned_states),
+                "all_zero_rows_pruned": len(self.q) - len(learned_states),
+            }
+        )
         payload = {
             "format": "gait-tabular-q-v1",
-            "metadata": metadata or {},
-            "states": {repr(state): values for state, values in self.q.items()},
+            "metadata": saved_metadata,
+            "states": learned_states,
         }
         output.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
         return output

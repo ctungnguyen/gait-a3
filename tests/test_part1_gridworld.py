@@ -2,13 +2,21 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 import math
+from pathlib import Path
+import tempfile
 import unittest
 
-from part1.agents import QLearningAgent, SARSAAgent
+from part1.agents import QLearningAgent, QTable, SARSAAgent
 from part1.config import GridworldSettings, load_gridworld_settings
 from part1.environment import GridWorld
-from part1.levels import LevelDefinition, get_level
-from part1.training import evaluate, evaluation_summary, shortest_collectible_steps, train
+from part1.levels import LevelDefinition, get_level, level_signature
+from part1.training import (
+    evaluate,
+    evaluation_summary,
+    shortest_collectible_steps,
+    shortest_external_reward_steps,
+    train,
+)
 
 
 def level(rows: list[str]) -> LevelDefinition:
@@ -16,6 +24,15 @@ def level(rows: list[str]) -> LevelDefinition:
 
 
 class GridworldMechanicsTests(unittest.TestCase):
+    def test_level_five_uses_two_stochastic_monsters(self):
+        env = GridWorld(get_level(5), seed=1)
+        self.assertEqual(len(env.monsters), 2)
+
+    def test_level_signature_detects_layout_changes(self):
+        original = level(["S A"])
+        changed = level(["S  A"])
+        self.assertNotEqual(level_signature(original), level_signature(changed))
+
     def test_rocks_block_without_changing_environment_reward(self):
         env = GridWorld(level(["SR A"]), seed=1)
         result = env.step(1)
@@ -84,6 +101,18 @@ class TabularAlgorithmTests(unittest.TestCase):
         actions = {agent.choose_action(self.state, 0.0, evaluate=True) for _ in range(200)}
         self.assertEqual(actions, {0, 1, 2, 3})
 
+    def test_saved_qtable_prunes_only_information_free_zero_rows(self):
+        table = QTable()
+        _ = table.values(self.state)
+        table.set(self.next_state, 2, 1.25)
+        with tempfile.TemporaryDirectory() as temporary:
+            path = table.save(Path(temporary) / "policy.json")
+            loaded, metadata = QTable.load(path)
+        self.assertNotIn(self.state, loaded.q)
+        self.assertEqual(loaded.get(self.state, 0), 0.0)
+        self.assertEqual(loaded.get(self.next_state, 2), 1.25)
+        self.assertEqual(metadata["all_zero_rows_pruned"], 1)
+
     def test_q_learning_uses_off_policy_maximum_target(self):
         agent = QLearningAgent(self.settings, seed=1)
         agent.qtable.q[self.next_state] = [1.0, 2.0, 3.0, 4.0]
@@ -119,6 +148,10 @@ class GridworldLearningSmokeTests(unittest.TestCase):
         self.assertEqual(shortest_collectible_steps(get_level(0)), 15)
         self.assertEqual(summary["success_rate"], 1)
         self.assertEqual(summary["mean_success_steps"], 15)
+
+    def test_level_six_is_solvable_but_delays_external_reward(self):
+        self.assertEqual(shortest_external_reward_steps(get_level(6)), 61)
+        self.assertEqual(shortest_collectible_steps(get_level(6)), 81)
 
     def test_q_learning_handles_stochastic_monster_transitions(self):
         result = train(4, "q_learning", episodes=1_000)

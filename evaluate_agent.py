@@ -90,7 +90,7 @@ def evaluate_style(
     factory = make_rotation_env if style is ControlStyle.ROTATION else make_direct_env
     env = factory(
         config=config,
-        reward_fn=ProgressionReward(settings.reward),
+        reward_fn=ProgressionReward(settings.reward, control_style=style),
         render_mode="human",
         seed=args.seed,
         theme=args.theme,

@@ -11,7 +11,7 @@ import numpy as np
 
 from ..arena import ArenaConfig, ControlStyle, action_names, make_direct_env, make_rotation_env
 from ..arena.rewards import ProgressionReward
-from .artifacts import ArtifactPaths, model_metadata, safe_run_name, write_json
+from .artifacts import ArtifactPaths, model_metadata, safe_run_name, sha256_file, write_json
 from .config import TrainingSettings
 from .evaluation import EPISODE_INFO_KEYS, evaluate_model, validate_model_contract, write_episode_csv
 
@@ -129,12 +129,27 @@ def train_style(
     dependencies["set_random_seed"](settings.seed)
 
     factory = make_rotation_env if style is ControlStyle.ROTATION else make_direct_env
+    resume_provenance: dict[str, Any] | None = None
+    if resume_model is not None:
+        resume_path = Path(resume_model)
+        if not resume_path.exists():
+            raise FileNotFoundError(f"Resume model not found: {resume_path}")
+        try:
+            display_path = str(resume_path.resolve().relative_to(artifact_root.resolve()))
+        except ValueError:
+            display_path = str(resume_path.resolve())
+        # Capture the parent hash before a promoted run can replace the same
+        # canonical path.  This makes continuation runs fully auditable.
+        resume_provenance = {
+            "source": display_path,
+            "sha256_at_start": sha256_file(resume_path),
+        }
 
     def build_training_env(rank: int):
         def initialize():
             env = factory(
                 config=arena_config,
-                reward_fn=ProgressionReward(settings.reward),
+                reward_fn=ProgressionReward(settings.reward, control_style=style),
                 render_mode=None,
                 seed=settings.seed + rank,
             )
@@ -151,7 +166,7 @@ def train_style(
     evaluation_env = Monitor(
         factory(
             config=arena_config,
-            reward_fn=ProgressionReward(settings.reward),
+            reward_fn=ProgressionReward(settings.reward, control_style=style),
             render_mode=None,
             seed=settings.seed + 50_000,
         ),
@@ -214,8 +229,6 @@ def train_style(
             reset_num_timesteps = True
         else:
             resume_path = Path(resume_model)
-            if not resume_path.exists():
-                raise FileNotFoundError(f"Resume model not found: {resume_path}")
             model = PPO.load(
                 str(resume_path),
                 env=train_env,
@@ -223,6 +236,8 @@ def train_style(
                 tensorboard_log=str(paths.tensorboard_dir),
                 print_system_info=True,
             )
+            assert resume_provenance is not None
+            resume_provenance["starting_timesteps"] = int(model.num_timesteps)
             validate_model_contract(model, style, resume_path)
             reset_num_timesteps = False
 
@@ -280,6 +295,8 @@ def train_style(
             "selected_checkpoint": str(selected_source.relative_to(artifact_root)),
         }
     )
+    if resume_provenance is not None:
+        settings_dict["resume_provenance"] = resume_provenance
     metadata = model_metadata(
         style=style,
         algorithm=settings.algorithm,

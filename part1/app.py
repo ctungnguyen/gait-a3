@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import argparse
-import time
+from dataclasses import asdict
 from pathlib import Path
 
 from shared import theme_names
@@ -12,7 +12,7 @@ from .agents import QTable, make_agent
 from .config import DEFAULT_CONFIG_PATH, PART1_ROOT, load_gridworld_settings
 from .environment import GridWorld
 from .evidence import generate_all
-from .levels import LEVELS, get_level
+from .levels import LEVELS, get_level, level_signature
 from .renderer import DemoState, GridworldRenderer
 from .training import TrainingResult, save_evaluation, save_training_result, evaluate, train
 
@@ -42,7 +42,7 @@ def _select_demo(theme_name: str) -> tuple[tuple[int, str, bool], str] | None:
     import pygame
 
     pygame.init()
-    screen = pygame.display.set_mode((980, 700))
+    screen = pygame.display.set_mode((980, 720))
     pygame.display.set_caption("GAIT A3 - Part I Demo Selection")
     title_font = pygame.font.SysFont("consolas", 31, bold=True)
     font = pygame.font.SysFont("consolas", 18)
@@ -58,12 +58,14 @@ def _select_demo(theme_name: str) -> tuple[tuple[int, str, bool], str] | None:
         screen.fill(palette.background)
         screen.blit(title_font.render("PART I / CLASSICAL RL GRIDWORLD", True, palette.text), (42, 30))
         screen.blit(small.render("Choose a saved policy or train it on first launch", True, palette.muted), (44, 76))
+        card_rects = []
         for index, (level, algorithm, intrinsic) in enumerate(DEMO_OPTIONS):
             column = index // 7
             row = index % 7
             x = 42 + column * 450
             y = 125 + row * 66
             rect = pygame.Rect(x, y, 420, 52)
+            card_rects.append(rect)
             if index == selected:
                 pygame.draw.rect(screen, palette.primary, rect, border_radius=8)
                 color = palette.background
@@ -75,8 +77,17 @@ def _select_demo(theme_name: str) -> tuple[tuple[int, str, bool], str] | None:
             label = f"L{level}  {algorithm.replace('_', ' ').upper()}{suffix}"
             screen.blit(font.render(label, True, color), (x + 14, y + 8))
             screen.blit(small.render(LEVELS[level].task, True, color), (x + 14, y + 30))
-        help_line = f"Arrows/WASD select | ENTER run | T theme ({palette.name}) | ESC main menu"
-        screen.blit(small.render(help_line, True, palette.muted), (42, 650))
+        theme_rect = pygame.Rect(42, 626, 270, 38)
+        back_rect = pygame.Rect(326, 626, 185, 38)
+        for rect, label in ((theme_rect, f"T THEME: {palette.name.upper()}"), (back_rect, "ESC BACK")):
+            hovered = rect.collidepoint(pygame.mouse.get_pos())
+            pygame.draw.rect(screen, palette.primary if hovered else palette.panel, rect, border_radius=8)
+            pygame.draw.rect(screen, palette.edge, rect, 1, border_radius=8)
+            color = palette.background if hovered else palette.text
+            rendered = small.render(label, True, color)
+            screen.blit(rendered, rendered.get_rect(center=rect.center))
+        help_line = "Arrows/WASD select | ENTER or click to run | all controls support mouse"
+        screen.blit(small.render(help_line, True, palette.muted), (42, 683))
         pygame.display.flip()
 
         for event in pygame.event.get():
@@ -101,6 +112,23 @@ def _select_demo(theme_name: str) -> tuple[tuple[int, str, bool], str] | None:
                     choice = DEMO_OPTIONS[selected]
                     pygame.display.quit()
                     return choice, themes[theme_index]
+            elif event.type == pygame.MOUSEMOTION:
+                for index, rect in enumerate(card_rects):
+                    if rect.collidepoint(event.pos):
+                        selected = index
+                        break
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                if theme_rect.collidepoint(event.pos):
+                    theme_index = (theme_index + 1) % len(themes)
+                elif back_rect.collidepoint(event.pos):
+                    pygame.quit()
+                    return None
+                else:
+                    for index, rect in enumerate(card_rects):
+                        if rect.collidepoint(event.pos):
+                            choice = DEMO_OPTIONS[index]
+                            pygame.display.quit()
+                            return choice, themes[theme_index]
         clock.tick(30)
 
 
@@ -125,11 +153,18 @@ def _load_or_train(
 
     if model_path.exists() and not retrain and episodes is None:
         table, metadata = QTable.load(model_path)
-        if metadata.get("level") != level or metadata.get("algorithm") != algorithm:
-            raise ValueError(f"Model metadata does not match requested demo: {model_path}")
-        agent = make_agent(algorithm, settings)
-        agent.qtable = table
-        return TrainingResult(definition, algorithm, intrinsic, settings, agent, [])
+        compatible = (
+            metadata.get("level") == level
+            and metadata.get("algorithm") == algorithm
+            and bool(metadata.get("intrinsic_enabled", False)) == intrinsic
+            and metadata.get("level_signature") == level_signature(definition)
+            and metadata.get("settings") == asdict(settings)
+        )
+        if compatible:
+            agent = make_agent(algorithm, settings)
+            agent.qtable = table
+            return TrainingResult(definition, algorithm, intrinsic, settings, agent, [])
+        print(f"Saved policy is stale for the current layout; retraining {run_name}.")
 
     preview_env = GridWorld(definition, settings.monster_move_chance, seed=settings.seed)
     renderer = GridworldRenderer(preview_env, settings, theme)
@@ -156,7 +191,7 @@ def _load_or_train(
     return result
 
 
-def _visual_policy(result: TrainingResult, theme: str) -> None:
+def _visual_policy(result: TrainingResult, theme: str) -> str:
     import pygame
 
     settings = result.settings
@@ -177,7 +212,36 @@ def _visual_policy(result: TrainingResult, theme: str) -> None:
     frames_per_step = max(1, round(30 / settings.fps_visual))
     frame_counter = 0
     single_step = False
-    terminal_at: float | None = None
+    episode_finished = False
+
+    def reset_episode() -> None:
+        nonlocal state, trail, demo, episode_finished, seed_counter
+        seed_counter += 1
+        state = environment.reset(seed=settings.seed + 20_000 + seed_counter)
+        trail = [environment.agent]
+        demo = DemoState(result.algorithm, result.intrinsic_enabled, episode=demo.episode + 1)
+        episode_finished = False
+
+    def activate(control: str) -> None:
+        nonlocal running, single_step, frames_per_step, theme_index
+        if control == "pause":
+            demo.paused = not demo.paused
+        elif control == "step":
+            single_step = True
+            demo.paused = True
+        elif control == "replay":
+            reset_episode()
+        elif control == "theme":
+            theme_index = (theme_index + 1) % len(themes)
+            renderer.set_theme(themes[theme_index])
+        elif control == "details":
+            demo.detail = not demo.detail
+        elif control == "faster":
+            frames_per_step = max(1, frames_per_step - 1)
+        elif control == "slower":
+            frames_per_step = min(30, frames_per_step + 1)
+        elif control == "menu":
+            running = False
 
     while running:
         for event in pygame.event.get():
@@ -185,30 +249,28 @@ def _visual_policy(result: TrainingResult, theme: str) -> None:
                 running = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    running = False
+                    activate("menu")
                 elif event.key == pygame.K_p:
-                    demo.paused = not demo.paused
+                    activate("pause")
                 elif event.key == pygame.K_n:
-                    single_step = True
-                    demo.paused = True
+                    activate("step")
                 elif event.key == pygame.K_r:
-                    seed_counter += 1
-                    state = environment.reset(seed=settings.seed + 20_000 + seed_counter)
-                    trail = [environment.agent]
-                    demo = DemoState(result.algorithm, result.intrinsic_enabled, episode=demo.episode + 1)
-                    terminal_at = None
+                    activate("replay")
                 elif event.key == pygame.K_t:
-                    theme_index = (theme_index + 1) % len(themes)
-                    renderer.set_theme(themes[theme_index])
+                    activate("theme")
                 elif event.key == pygame.K_d:
-                    demo.detail = not demo.detail
+                    activate("details")
                 elif event.key in (pygame.K_PLUS, pygame.K_EQUALS, pygame.K_KP_PLUS):
-                    frames_per_step = max(1, frames_per_step - 1)
+                    activate("faster")
                 elif event.key in (pygame.K_MINUS, pygame.K_KP_MINUS):
-                    frames_per_step = min(30, frames_per_step + 1)
+                    activate("slower")
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                control = renderer.control_at(event.pos)
+                if control is not None:
+                    activate(control)
 
         should_step = (
-            terminal_at is None
+            not episode_finished
             and ((not demo.paused and frame_counter % frames_per_step == 0) or single_step)
         )
         if should_step:
@@ -224,14 +286,8 @@ def _visual_policy(result: TrainingResult, theme: str) -> None:
             if step_result.done or demo.step >= settings.max_steps_per_episode:
                 won = "win" in step_result.info.get("events", ())
                 demo.status = "OBJECTIVES COMPLETE" if won else "AGENT DIED"
-                terminal_at = time.monotonic()
-
-        if terminal_at is not None and time.monotonic() - terminal_at >= 1.4:
-            seed_counter += 1
-            state = environment.reset(seed=settings.seed + 20_000 + seed_counter)
-            trail = [environment.agent]
-            demo = DemoState(result.algorithm, result.intrinsic_enabled, episode=demo.episode + 1)
-            terminal_at = None
+                demo.paused = True
+                episode_finished = True
 
         renderer.draw(result.agent, demo, trail)
         clock.tick(30)
@@ -239,6 +295,7 @@ def _visual_policy(result: TrainingResult, theme: str) -> None:
 
     renderer.close()
     pygame.quit()
+    return themes[theme_index]
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -271,25 +328,39 @@ def main(argv: list[str] | None = None) -> None:
         )
         return
 
-    if args.level is None:
+    if args.level is not None:
+        result = _load_or_train(
+            args.level,
+            args.algorithm,
+            args.intrinsic,
+            args.config,
+            args.episodes,
+            args.retrain,
+            args.theme,
+        )
+        if not args.train_only:
+            _visual_policy(result, args.theme)
+        return
+
+    # When launched interactively, leaving a policy returns to this selector.
+    # Esc from the selector exits Part I and reveals the unified parent menu.
+    while True:
         selected = _select_demo(args.theme)
         if selected is None:
             return
         (level, algorithm, intrinsic), args.theme = selected
-    else:
-        level, algorithm, intrinsic = args.level, args.algorithm, args.intrinsic
-
-    result = _load_or_train(
-        level,
-        algorithm,
-        intrinsic,
-        args.config,
-        args.episodes,
-        args.retrain,
-        args.theme,
-    )
-    if not args.train_only:
-        _visual_policy(result, args.theme)
+        result = _load_or_train(
+            level,
+            algorithm,
+            intrinsic,
+            args.config,
+            args.episodes,
+            args.retrain,
+            args.theme,
+        )
+        if args.train_only:
+            return
+        args.theme = _visual_policy(result, args.theme)
 
 
 if __name__ == "__main__":

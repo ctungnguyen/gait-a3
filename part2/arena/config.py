@@ -23,7 +23,7 @@ class ArenaConfig:
     player_radius: float = 16.0
     player_health: float = 100.0
     player_max_speed: float = 260.0
-    player_direct_acceleration: float = 1_000.0
+    player_direct_acceleration: float = 520.0
     player_thrust_acceleration: float = 520.0
     player_rotation_speed: float = 3.2
     player_drag_per_30hz_step: float = 0.91

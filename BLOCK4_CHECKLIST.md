@@ -29,6 +29,8 @@
 
 - [x] Both styles use the same Arena physics, configuration, observations,
   reward hook, enemies, spawners, collisions, phases, and episode limits
+- [x] Both use the same 520 px/s² movement acceleration and 260 px/s speed cap;
+  a unit test measures equality after sustained movement
 - [x] `part2/arena/controls.py` is the single source of truth for all action IDs
 - [x] `make_rotation_env()` and `make_direct_env()` prevent accidental style
   overrides in training or evaluation code
@@ -42,6 +44,8 @@
   shoot actions around the weapon cooldown
 - [x] Exhaustive unit tests verify every ID, decoded command, axis direction,
   turn direction, action-space size, style lock, and shared observation shape
+- [x] `part2.py` provides Style -> Manual/Trained PPO selection with mouse and
+  keyboard support
 
 ## Cross-block outputs for final submission
 

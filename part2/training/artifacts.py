@@ -12,7 +12,11 @@ import re
 from typing import Any
 
 from ..arena import ControlStyle, action_names
-from ..arena.adapters import OBSERVATION_LABELS, OBSERVATION_SIZE
+from ..arena.adapters import (
+    OBSERVATION_LABELS,
+    OBSERVATION_SCHEMA_VERSION,
+    OBSERVATION_SIZE,
+)
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -110,7 +114,7 @@ def model_metadata(
     dependency_versions: dict[str, str],
 ) -> dict[str, Any]:
     return {
-        "schema_version": 1,
+        "schema_version": OBSERVATION_SCHEMA_VERSION,
         "created_utc": datetime.now(timezone.utc).isoformat(),
         "algorithm": algorithm,
         "control_style": style.value,

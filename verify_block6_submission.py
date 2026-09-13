@@ -33,7 +33,7 @@ def main() -> None:
     settings = load_training_settings(PROJECT_ROOT / "config" / "training.json")
     passed &= report("Algorithm", settings.algorithm == "PPO", settings.algorithm)
     passed &= report(
-        "Neural network",
+        "Default neural network",
         len(settings.net_arch) >= 1,
         f"MLP hidden layers {list(settings.net_arch)}",
     )
@@ -98,6 +98,13 @@ def main() -> None:
             metadata is not None,
             str(model_path.with_suffix('.metadata.json')),
         )
+        if metadata is not None:
+            trained_architecture = metadata.get("training", {}).get("net_arch", [])
+            passed &= report(
+                f"{style.value} trained network",
+                isinstance(trained_architecture, list) and len(trained_architecture) >= 1,
+                f"MLP hidden layers {trained_architecture}",
+            )
         if model_path.exists():
             try:
                 model = load_ppo_model(model_path)

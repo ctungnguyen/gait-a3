@@ -17,6 +17,7 @@ from .training import (
     save_evaluation,
     save_training_result,
     shortest_collectible_steps,
+    shortest_external_reward_steps,
     train,
 )
 
@@ -193,6 +194,15 @@ def generate_all(
             summary["mean_excess_steps_on_success"] = (
                 summary["mean_success_steps"] - optimum if optimum is not None else None
             )
+        if level == 6:
+            summary["minimum_steps_to_first_external_reward"] = (
+                shortest_external_reward_steps(result.level)
+            )
+            summary["interpretation"] = (
+                "The no-intrinsic run is a deliberately equal-budget sparse-reward "
+                "baseline. A zero success rate is a valid experimental result, not "
+                "an unreachable map; the intrinsic run changes learning reward only."
+            )
         summaries.append(summary)
         completed[(level, algorithm, intrinsic)] = result
 
@@ -253,7 +263,11 @@ def generate_all(
         "environment_reward_contract": {"apple": 1, "key": 0, "chest": 2, "death": 0},
         "monster_move_probability": 0.4,
         "intrinsic_formula": "intrinsicRewardStrength / sqrt(n(s) + 1)",
-        "note": "Intrinsic reward affects learning updates only; charts use unchanged environment return.",
+        "note": (
+            "Intrinsic reward affects learning updates only; charts use unchanged "
+            "environment return. Level 6 is intentionally solvable but sparse, so "
+            "zero baseline success within the fixed budget is valid evidence."
+        ),
         "runs": summaries,
     }
     (reports_dir / "part1_evaluation_summary.json").write_text(

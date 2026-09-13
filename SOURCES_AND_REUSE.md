@@ -19,3 +19,9 @@ official framework maintainers:
 No pretrained third-party model is used. Both included PPO models were trained
 from this submitted Arena/configuration, have matching TensorBoard/evaluation
 evidence and SHA-256 metadata, and can be reproduced with the documented scripts.
+
+Part I uses the pixel-art PNG set supplied by the student team in
+`gait-a3-sprites(1).zip`; the active copies are stored under
+`part1/assets/sprites/`. Pygame primitives remain as fallbacks if an asset is
+missing or cannot be loaded. The three colour palettes are project-owned render
+settings and do not alter learning mechanics.

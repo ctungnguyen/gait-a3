@@ -61,6 +61,8 @@ class ArenaEnv(BaseEnv):
         self._renderer = None
         self.last_action_index: int | None = None
         self.last_action_name = "NO ACTION YET"
+        self.last_reward = 0.0
+        self.last_reward_components: dict[str, float] = {}
         self.episode_metrics: dict[str, float | int] = {}
         self._reset_episode_metrics()
 
@@ -82,6 +84,8 @@ class ArenaEnv(BaseEnv):
         self._reset_episode_metrics()
         self.last_action_index = None
         self.last_action_name = "NO ACTION YET"
+        self.last_reward = 0.0
+        self.last_reward_components = {}
         observation = self.observation_fn(self.core)
         info = self.core.info()
         info.update(
@@ -116,7 +120,11 @@ class ArenaEnv(BaseEnv):
         )
         reward_components = getattr(self.reward_fn, "last_components", None)
         if isinstance(reward_components, dict):
+            self.last_reward_components = dict(reward_components)
             info["reward_components"] = dict(reward_components)
+        else:
+            self.last_reward_components = {}
+        self.last_reward = reward
         return observation, reward, outcome.terminated, outcome.truncated, info
 
     def _reset_episode_metrics(self) -> None:
@@ -172,6 +180,8 @@ class ArenaEnv(BaseEnv):
             status=status,
             debug=debug,
             action_label=self.last_action_name,
+            reward=self.last_reward,
+            reward_components=self.last_reward_components,
         )
 
     def close(self) -> None:

@@ -33,20 +33,26 @@ from part2.training.evaluation import (
 
 def candidate_paths(style: ControlStyle) -> dict[str, Path]:
     base = PROJECT_ROOT / "models"
-    return {
+    candidates = {
+        "canonical_current": base / f"{style.value}_agent.zip",
         "full_run_best": base / style.value / "final_best" / "best_model.zip",
         "full_run_last": base / style.value / "final_final.zip",
         "tune_baseline": base / "tuning" / f"{style.value}_tune_baseline.zip",
         "tune_exploratory": base / "tuning" / f"{style.value}_tune_exploratory.zip",
         "tune_stable": base / "tuning" / f"{style.value}_tune_stable.zip",
     }
+    checkpoint_dir = PROJECT_ROOT / "checkpoints" / style.value / "final"
+    for checkpoint in sorted(checkpoint_dir.glob(f"ppo_{style.value}_final_*_steps.zip")):
+        step_label = checkpoint.stem.rsplit("_", 2)[-2]
+        candidates[f"checkpoint_{step_label}"] = checkpoint
+    return candidates
 
 
 def _source_metadata(style: ControlStyle, label: str, source: Path) -> dict:
     metadata = load_metadata_for_model(source)
     if metadata is not None:
         return metadata
-    if label.startswith("full_run"):
+    if label.startswith(("full_run", "checkpoint_", "canonical_")):
         canonical = load_metadata_for_model(
             PROJECT_ROOT / "models" / f"{style.value}_agent.zip"
         )
@@ -84,28 +90,48 @@ def main() -> None:
 
     for style in (ControlStyle.ROTATION, ControlStyle.DIRECT):
         candidates: list[dict] = []
+        skipped_candidates: list[dict[str, str]] = []
         episode_rows_by_label: dict[str, list[dict]] = {}
+        evaluated_by_hash: dict[str, tuple[list[dict], dict]] = {}
         for label, path in candidate_paths(style).items():
             if not path.exists():
                 continue
-            model = load_ppo_model(path, device=args.device)
-            validate_model_contract(model, style, path, warn_missing_metadata=False)
-            episode_rows, summary = evaluate_model(
-                model,
-                style=style,
-                arena_config=arena_config,
-                reward_config=settings.reward,
-                episodes=args.episodes,
-                seed=args.seed,
-                deterministic=True,
-            )
+            digest = sha256_file(path)
+            cached = evaluated_by_hash.get(digest)
+            if cached is None:
+                model = load_ppo_model(path, device=args.device)
+                try:
+                    validate_model_contract(model, style, path, warn_missing_metadata=False)
+                except ValueError as exc:
+                    skipped_candidates.append(
+                        {"candidate": label, "source": str(path), "reason": str(exc)}
+                    )
+                    print(f"{style.value:8s} {label:18s} SKIPPED: {exc}", flush=True)
+                    continue
+                episode_rows, summary = evaluate_model(
+                    model,
+                    style=style,
+                    arena_config=arena_config,
+                    reward_config=settings.reward,
+                    episodes=args.episodes,
+                    seed=args.seed,
+                    deterministic=True,
+                )
+                evaluated_by_hash[digest] = (episode_rows, summary)
+                reused = False
+            else:
+                episode_rows, summary = cached
+                reused = True
             source_metadata = _source_metadata(style, label, path)
+            recorded_timesteps = source_metadata.get("training", {}).get("actual_timesteps")
+            if label.startswith("checkpoint_"):
+                recorded_timesteps = int(label.removeprefix("checkpoint_"))
             row = {
                 "control_style": style.value,
                 "candidate": label,
                 "source": str(path.relative_to(PROJECT_ROOT)),
-                "sha256": sha256_file(path),
-                "training_timesteps": source_metadata.get("training", {}).get("actual_timesteps"),
+                "sha256": digest,
+                "training_timesteps": recorded_timesteps,
                 **summary,
             }
             candidates.append(row)
@@ -115,6 +141,8 @@ def main() -> None:
                 f"{style.value:8s} {label:18s} success={summary['success_rate']:.1%} "
                 f"spawners={summary['mean_spawners_destroyed']:.2f} "
                 f"return={summary['mean_return']:.2f}"
+                f"{' (same model; reused)' if reused else ''}",
+                flush=True,
             )
 
         if not candidates:
@@ -129,6 +157,7 @@ def main() -> None:
             ],
             "selected": selected,
             "candidates": candidates,
+            "skipped_incompatible_candidates": skipped_candidates,
         }
 
         if args.no_promote:

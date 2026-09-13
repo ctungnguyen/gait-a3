@@ -109,6 +109,24 @@ class ArenaCoreTests(unittest.TestCase):
                 self.assertAlmostEqual(float(core.player.vel[1]), float(before[1]))
                 self.assertEqual(len(core.projectiles), 1)
 
+    def test_both_control_styles_reach_the_same_speed_cap(self):
+        cases = (
+            (ControlStyle.ROTATION, 1),
+            (ControlStyle.DIRECT, 1),
+        )
+        measured = []
+        for style, action in cases:
+            core = ArenaCore(seed=22)
+            for spawner in core.spawners:
+                spawner.spawn_timer = 999.0
+            for _ in range(30):
+                core.step(decode_action(style, action), style)
+            measured.append(length(core.player.vel))
+
+        self.assertAlmostEqual(measured[0], self.core.config.player_max_speed, places=4)
+        self.assertAlmostEqual(measured[1], self.core.config.player_max_speed, places=4)
+        self.assertAlmostEqual(measured[0], measured[1], places=4)
+
 
 if __name__ == "__main__":
     unittest.main()

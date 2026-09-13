@@ -17,7 +17,14 @@ from part2.training.plots import plot_evaluation_curves
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Train both required Part II control styles")
-    parser.add_argument("--preset", choices=("baseline", "exploratory", "stable"), default="baseline")
+    presets = ("baseline", "exploratory", "stable", "rotation_focus", "direct_focus")
+    parser.add_argument(
+        "--preset",
+        choices=presets,
+        help="Optional shared preset override for both styles",
+    )
+    parser.add_argument("--rotation-preset", choices=presets, default="rotation_focus")
+    parser.add_argument("--direct-preset", choices=presets, default="direct_focus")
     parser.add_argument("--timesteps", type=int)
     parser.add_argument("--n-envs", type=int)
     parser.add_argument("--seed", type=int)
@@ -33,17 +40,23 @@ def main() -> None:
     args = parser.parse_args()
 
     arena_config = ArenaConfig.from_json(args.arena_config)
-    settings = load_training_settings(
-        args.training_config,
-        preset=args.preset,
-        total_timesteps=args.timesteps,
-        n_envs=args.n_envs,
-        seed=args.seed,
-        final_eval_episodes=args.final_eval_episodes,
-    )
+    settings_by_style = {
+        style: load_training_settings(
+            args.training_config,
+            preset=(
+                args.preset
+                or (args.rotation_preset if style is ControlStyle.ROTATION else args.direct_preset)
+            ),
+            total_timesteps=args.timesteps,
+            n_envs=args.n_envs,
+            seed=args.seed,
+            final_eval_episodes=args.final_eval_episodes,
+        )
+        for style in (ControlStyle.ROTATION, ControlStyle.DIRECT)
+    }
     if args.dry_run:
-        _dry_run(ControlStyle.ROTATION, arena_config, settings)
-        _dry_run(ControlStyle.DIRECT, arena_config, settings)
+        _dry_run(ControlStyle.ROTATION, arena_config, settings_by_style[ControlStyle.ROTATION])
+        _dry_run(ControlStyle.DIRECT, arena_config, settings_by_style[ControlStyle.DIRECT])
         return
 
     summaries = {}
@@ -54,7 +67,7 @@ def main() -> None:
         summaries[style.value] = train_style(
             style=style,
             arena_config=arena_config,
-            settings=settings,
+            settings=settings_by_style[style],
             run_name=args.run_name,
             promote=True,
             resume_model=resume,

@@ -80,6 +80,8 @@ class ArenaRenderer:
         status: str | None = None,
         debug: bool = False,
         action_label: str = "NO ACTION YET",
+        reward: float = 0.0,
+        reward_components: dict[str, float] | None = None,
     ):
         pg = self.pg
         self._draw_background(core)
@@ -106,7 +108,7 @@ class ArenaRenderer:
             self._draw_debug_overlays(core)
         self._draw_hud(core, control_style, action_label)
         if debug:
-            self._draw_debug_panel(core, action_label)
+            self._draw_debug_panel(core, action_label, reward, reward_components or {})
 
         if status:
             self._draw_status(status)
@@ -347,9 +349,15 @@ class ArenaRenderer:
             )
             self._draw_vector(projectile.pos, projectile.vel, self.GOLD, scale=0.08)
 
-    def _draw_debug_panel(self, core: ArenaCore, action_label: str) -> None:
+    def _draw_debug_panel(
+        self,
+        core: ArenaCore,
+        action_label: str,
+        reward: float,
+        reward_components: dict[str, float],
+    ) -> None:
         pg = self.pg
-        width, height = 346, 322
+        width, height = 400, 430
         x = self.config.width - width - 16
         y = 48
         panel = pg.Surface((width, height), pg.SRCALPHA)
@@ -371,7 +379,22 @@ class ArenaRenderer:
             (f"Speed        {speed:6.1f} px/s", self.CYAN),
             (f"Heading      {heading_degrees:6.1f} deg", self.CYAN),
             (f"Fire CD      {player.shoot_cooldown:6.2f} s", self.TEXT),
+            (f"Step reward  {reward:+8.4f}", self.GOLD),
         ]
+
+        if reward_components:
+            strongest = sorted(
+                reward_components.items(),
+                key=lambda item: abs(item[1]),
+                reverse=True,
+            )[:3]
+            lines.append(("Reward components (largest):", self.MUTED))
+            lines.extend(
+                (f"  {name:<18} {value:+.4f}", self.MUTED)
+                for name, value in strongest
+            )
+        else:
+            lines.append(("Reward parts none / reset", self.MUTED))
 
         if enemy is None:
             lines.extend(

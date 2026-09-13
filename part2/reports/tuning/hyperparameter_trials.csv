@@ -1,7 +1,7 @@
 control_style,preset,timesteps,seed,mean_return,std_return,success_rate,mean_max_phase,mean_episode_steps,model
-rotation,baseline,50000,4200,-27.72005995988487,0.517720131088548,0.0,1.0,316.2,models\tuning\rotation_tune_baseline.zip
-rotation,exploratory,50000,4200,-28.966000566816387,3.4065466479816666,0.0,1.0,272.3,models\tuning\rotation_tune_exploratory.zip
-rotation,stable,50000,4200,-40.88320000000001,0.02804924241401459,0.0,1.0,212.1,models\tuning\rotation_tune_stable.zip
-direct,baseline,50000,4200,-40.61023270052398,0.01499866660740264,0.0,1.0,254.4,models\tuning\direct_tune_baseline.zip
-direct,exploratory,50000,4200,-40.98777574932393,0.31522843770044656,0.0,1.0,289.1,models\tuning\direct_tune_exploratory.zip
-direct,stable,50000,4200,-40.68523270052397,0.01889338508579425,0.0,1.0,254.4,models\tuning\direct_tune_stable.zip
+rotation,baseline,50000,4200,-34.1657104906313,1.7898279571014515,0.0,1.0,261.8,models/tuning/rotation_tune_baseline.zip
+rotation,exploratory,50000,4200,-35.35220141944734,0.6828917931407522,0.0,1.0,256.6,models/tuning/rotation_tune_exploratory.zip
+rotation,stable,50000,4200,-28.450882299686953,3.141392493771267,0.0,1.0,278.4,models/tuning/rotation_tune_stable.zip
+direct,baseline,50000,4200,-40.89045178371022,0.014998666607403415,0.0,1.0,254.4,models/tuning/direct_tune_baseline.zip
+direct,exploratory,50000,4200,-40.66531084131544,0.11216657293820018,0.0,1.0,203.7,models/tuning/direct_tune_exploratory.zip
+direct,stable,50000,4200,-35.77174810278783,1.24918172199106,0.0,1.0,269.3,models/tuning/direct_tune_stable.zip
