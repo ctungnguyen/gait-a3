@@ -2,6 +2,7 @@
   "format": "gait-tabular-q-v1",
   "metadata": {
     "algorithm": "q_learning",
+    "all_zero_rows_pruned": 0,
     "environment_rewards_unchanged": true,
     "intrinsic_enabled": true,
     "intrinsic_rule": "r_i = intrinsicRewardStrength / sqrt(n(s) + 1)",
@@ -25,7 +26,9 @@
       "seed": 42,
       "tile_size": 56
     },
-    "task": "Task 5 - intrinsic reward"
+    "stored_learned_state_count": 107,
+    "task": "Task 5 - intrinsic reward",
+    "visited_state_count": 107
   },
   "states": {
     "(0, 0, 1, 0, 0, ())": [
