@@ -127,7 +127,30 @@ MAPS = {
 
 
 }
+SPRITE_DIR = Path(__file__).resolve().parent / "sprites"
 
+SPRITE_FILES = {
+    "agent": "agent.png",
+    "rock": "rock.png",
+    "fire": "lava.png",
+    "apple": "coin.png",
+    "key": "key.png",
+    "chest_closed": "chest_locked.png",
+    "chest_open": "chest_open.png",
+    "monster": "monster.png",
+}
+
+
+def load_sprites(tile_size: int) -> Dict[str, Optional[pygame.Surface]]:
+    sprites: Dict[str, Optional[pygame.Surface]] = {}
+    for key, filename in SPRITE_FILES.items():
+        path = SPRITE_DIR / filename
+        if path.exists():
+            img = pygame.image.load(str(path)).convert_alpha()
+            sprites[key] = pygame.transform.smoothscale(img, (tile_size, tile_size))
+        else:
+            sprites[key] = None
+    return sprites
 
 
 @dataclass
@@ -371,7 +394,6 @@ def print_summary(log_rows: list):
 
 def train_tabular(level_id: int, algorithm: str, cfg: Optional[dict] = None,
                   use_intrinsic_reward: Optional[bool] = None) -> Tuple[BaseTabularAgent, list]:
-    """Train without rendering, making experiments and automated evaluation reproducible."""
     settings = dict(CONFIG)
     if cfg:
         settings.update(cfg)
@@ -421,42 +443,66 @@ def train_tabular(level_id: int, algorithm: str, cfg: Optional[dict] = None,
 
 def render_frame(screen, font, env: GridWorld, level_id: int, algo_name: str,
                  ep: int, total_ep: int, step: int, eps: float, score: float,
-                 use_intrinsic: bool = False, is_eval: bool = False):
+                 use_intrinsic: bool = False, is_eval: bool = False,
+                 sprites: Optional[Dict[str, Optional[pygame.Surface]]] = None):
+    sprites = sprites or {}
 
     ts = CONFIG["tileSize"]
-    screen.fill((28, 30, 38))
+    screen.fill((32, 28, 26))
 
     for x in range(env.w):
         for y in range(env.h):
-            pygame.draw.rect(screen, (45, 50, 62), (x * ts, y * ts, ts, ts), 1)
+            pygame.draw.rect(screen, (58, 50, 44), (x * ts, y * ts, ts, ts), 1)
 
     for (rx, ry) in env.rocks:
-        pygame.draw.rect(screen, (100, 110, 125), (rx * ts + 2, ry * ts + 2, ts - 4, ts - 4), border_radius=4)
+        if sprites.get("rock"):
+            screen.blit(sprites["rock"], (rx * ts, ry * ts))
+        else:
+            pygame.draw.rect(screen, (100, 110, 125), (rx * ts + 2, ry * ts + 2, ts - 4, ts - 4), border_radius=4)
     for (fx, fy) in env.fires:
-        pygame.draw.circle(screen, (239, 68, 68), (fx * ts + ts // 2, fy * ts + ts // 2), ts // 3)
+        if sprites.get("fire"):
+            screen.blit(sprites["fire"], (fx * ts, fy * ts))
+        else:
+            pygame.draw.circle(screen, (239, 68, 68), (fx * ts + ts // 2, fy * ts + ts // 2), ts // 3)
 
     if env.key_pos and env.has_key == 0:
         kx, ky = env.key_pos
-        pygame.draw.circle(screen, (59, 130, 246), (kx * ts + ts // 2, ky * ts + ts // 2), ts // 4)
+        if sprites.get("key"):
+            screen.blit(sprites["key"], (kx * ts, ky * ts))
+        else:
+            pygame.draw.circle(screen, (59, 130, 246), (kx * ts + ts // 2, ky * ts + ts // 2), ts // 4)
     if env.chest_pos:
         cx, cy = env.chest_pos
-        col = (107, 114, 128) if env.chest_opened else (168, 85, 247)
-        pygame.draw.rect(screen, col, (cx * ts + 8, cy * ts + 8, ts - 16, ts - 16), border_radius=4)
+        sprite_key = "chest_open" if env.chest_opened else "chest_closed"
+        if sprites.get(sprite_key):
+            screen.blit(sprites[sprite_key], (cx * ts, cy * ts))
+        else:
+            col = (107, 114, 128) if env.chest_opened else (168, 85, 247)
+            pygame.draw.rect(screen, col, (cx * ts + 8, cy * ts + 8, ts - 16, ts - 16), border_radius=4)
 
     for p, idx in env.apple_index.items():
         if (env.apple_mask >> idx) & 1:
             ax, ay = p
-            pygame.draw.circle(screen, (250, 204, 21), (ax * ts + ts // 2, ay * ts + ts // 2), ts // 3)
+            if sprites.get("apple"):
+                screen.blit(sprites["apple"], (ax * ts, ay * ts))
+            else:
+                pygame.draw.circle(screen, (250, 204, 21), (ax * ts + ts // 2, ay * ts + ts // 2), ts // 3)
 
 
     for (mx, my) in env.monsters:
-        cx, cy = mx * ts + ts // 2, my * ts + ts // 2
-        r = ts // 3
-        pygame.draw.polygon(screen, (185, 28, 28),
-                             [(cx, cy - r), (cx + r, cy), (cx, cy + r), (cx - r, cy)])
+        if sprites.get("monster"):
+            screen.blit(sprites["monster"], (mx * ts, my * ts))
+        else:
+            cx, cy = mx * ts + ts // 2, my * ts + ts // 2
+            r = ts // 3
+            pygame.draw.polygon(screen, (185, 28, 28),
+                            [(cx, cy - r), (cx + r, cy), (cx, cy + r), (cx - r, cy)])
  
     px, py = env.agent
-    pygame.draw.rect(screen, (34, 197, 94), (px * ts + 6, py * ts + 6, ts - 12, ts - 12), border_radius=8)
+    if sprites.get("agent"):
+        screen.blit(sprites["agent"], (px * ts, py * ts))
+    else:
+        pygame.draw.rect(screen, (34, 197, 94), (px * ts + 6, py * ts + 6, ts - 12, ts - 12), border_radius=8)
 
 
     status = "EVALUATION (Learned Policy)" if is_eval else f"TRAINING (Ep {ep+1}/{total_ep})"
@@ -500,6 +546,7 @@ def run_experiment(
     env = GridWorld(layout, monster_move_chance=CONFIG["monsterMoveChance"])
     screen = pygame.display.set_mode((env.w * CONFIG["tileSize"], env.h * CONFIG["tileSize"]))
     pygame.display.set_caption(f"Part 1 Demo - Level {level_id} ({algorithm.upper()})")
+    sprites = load_sprites(CONFIG["tileSize"])
     clock = pygame.time.Clock()
     font = pygame.font.Font(None, 20)
 
@@ -566,7 +613,7 @@ def run_experiment(
             s = sp
 
             render_frame(screen, font, env, level_id, algorithm, ep, episodes, steps, eps, ep_score,
-                         use_intrinsic=use_intrinsic, is_eval=False)
+                         use_intrinsic=use_intrinsic, is_eval=False, sprites=sprites)
 
             clock.tick(CONFIG["fpsFast"] if is_fast else CONFIG["fpsVisual"])
 
@@ -610,7 +657,7 @@ def run_experiment(
             steps += 1
 
             render_frame(screen, font, env, level_id, algorithm, 0, 0, steps, 0.0, ep_score,
-                         use_intrinsic=use_intrinsic, is_eval=True)
+                         use_intrinsic=use_intrinsic, is_eval=True, sprites=sprites)
 
             clock.tick(CONFIG["fpsVisual"])
 
