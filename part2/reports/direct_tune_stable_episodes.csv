@@ -1,0 +1,11 @@
+episode,seed,return,steps,termination,episode_max_phase,episode_phases_advanced,episode_enemies_destroyed,episode_spawners_destroyed,episode_shots_fired,episode_damage_dealt,episode_damage_taken,is_success
+1,104200,-41.69195520655238,258,death,1,0,0,0,0,0.0,100.0,False
+2,104201,-41.640955206552384,241,death,1,0,0,0,0,0.0,100.0,False
+3,104202,-41.673955206552385,252,death,1,0,0,0,0,0.0,100.0,False
+4,104203,-41.658955206552385,247,death,1,0,0,0,0,0.0,100.0,False
+5,104204,-41.655955206552385,246,death,1,0,0,0,0,0.0,100.0,False
+6,104205,-41.68295520655238,255,death,1,0,0,0,0,0.0,100.0,False
+7,104206,-41.70095520655238,261,death,1,0,0,0,0,0.0,100.0,False
+8,104207,-41.70395520655238,262,death,1,0,0,0,0,0.0,100.0,False
+9,104208,-41.71595520655238,266,death,1,0,0,0,0,0.0,100.0,False
+10,104209,-41.68595520655238,256,death,1,0,0,0,0,0.0,100.0,False

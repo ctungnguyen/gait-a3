@@ -1,0 +1,7 @@
+control_style,preset,timesteps,seed,mean_return,std_return,success_rate,mean_max_phase,mean_episode_steps,model
+rotation,baseline,50000,4200,-41.96533895820471,0.02836705836000577,0.0,1.0,302.3,models\tuning\rotation_tune_baseline.zip
+rotation,exploratory,50000,4200,-42.931368344642344,0.05032041368630661,0.0,1.0,302.1,models\tuning\rotation_tune_exploratory.zip
+rotation,stable,50000,4200,-41.21869398148291,0.02249799991110406,0.0,1.0,254.4,models\tuning\rotation_tune_stable.zip
+direct,baseline,50000,4200,-41.74929019330695,0.029903845906506202,0.0,1.0,330.2,models\tuning\direct_tune_baseline.zip
+direct,exploratory,50000,4200,-42.99684245658402,0.04619528892828191,0.0,1.0,446.2,models\tuning\direct_tune_exploratory.zip
+direct,stable,50000,4200,-41.68115520655238,0.02249799991110107,0.0,1.0,254.4,models\tuning\direct_tune_stable.zip

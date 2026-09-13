@@ -1,0 +1,15 @@
+{
+  "run_name": "level6_q_learning_intrinsic",
+  "level": 6,
+  "algorithm": "q_learning",
+  "intrinsic_enabled": true,
+  "episodes": 30,
+  "mean_environment_return": 3.0,
+  "return_std": 0.0,
+  "success_rate": 1,
+  "death_rate": 0,
+  "truncation_rate": 0,
+  "mean_steps": 82,
+  "mean_success_steps": 82,
+  "mean_monster_moves": 0
+}

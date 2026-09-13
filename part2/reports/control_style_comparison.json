@@ -1,0 +1,57 @@
+{
+  "algorithm": "PPO",
+  "episodes_per_style": 30,
+  "evaluation_reward": {
+    "aim_progress": 0.04,
+    "aligned_shot": 0.08,
+    "aligned_shot_threshold": 0.92,
+    "approach_progress": 0.02,
+    "enemy_damage_per_hp": 0.005,
+    "enemy_destroyed": 0.5,
+    "firing_lane_progress": 0.0,
+    "phase_advanced": 30.0,
+    "player_damage_per_hp": -0.15,
+    "player_died": -25.0,
+    "spawner_damage_per_hp": 0.08,
+    "spawner_destroyed": 12.0,
+    "step_penalty": -0.003,
+    "time_limit_reached": -2.0,
+    "wasted_shot": -0.02
+  },
+  "fair_comparison": "Same Arena, common evaluation reward (Direct training-only firing-lane potential disabled), deterministic policy, and episode seeds",
+  "results": {
+    "direct": {
+      "episodes": 30,
+      "highest_phase": 3,
+      "max_return": 108.20270155836847,
+      "mean_damage_dealt": 660.3333333333334,
+      "mean_damage_taken": 97.66666666666667,
+      "mean_enemies_destroyed": 25.733333333333334,
+      "mean_episode_steps": 1424.9333333333334,
+      "mean_max_phase": 1.8,
+      "mean_return": 30.300249060616345,
+      "mean_shots_fired": 167.53333333333333,
+      "mean_spawners_destroyed": 1.8333333333333333,
+      "min_return": -29.457398740179705,
+      "std_return": 31.16383996100546,
+      "success_rate": 0.7333333333333333
+    },
+    "rotation": {
+      "episodes": 30,
+      "highest_phase": 3,
+      "max_return": 141.20447231823388,
+      "mean_damage_dealt": 486.6666666666667,
+      "mean_damage_taken": 100.0,
+      "mean_enemies_destroyed": 7.3,
+      "mean_episode_steps": 479.76666666666665,
+      "mean_max_phase": 2.966666666666667,
+      "mean_return": 110.18728934448737,
+      "mean_shots_fired": 59.266666666666666,
+      "mean_spawners_destroyed": 4.833333333333333,
+      "min_return": 44.361994347042945,
+      "std_return": 14.548452014905978,
+      "success_rate": 1.0
+    }
+  },
+  "shared_episode_seed_start": 12000
+}
